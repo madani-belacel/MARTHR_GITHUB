@@ -1,0 +1,5 @@
+metric,mean,min,max
+trust,0.4593,0.0,0.9375
+energy,0.5327,0.0,1.0
+latency,0.3679,0.0,0.548
+mcs_score,0.6321,0.452,1.0

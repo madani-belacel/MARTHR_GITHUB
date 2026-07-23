@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# LaTeX auxiliary files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+
+# Compiled LaTeX
+*.pdf
+!manuscript/Figures/*.pdf
+
+# C compiled objects
+*.o
+*.out
+
+# C test executables
+tests/test_marthr_core
+tests/test_marthr_rank
+tests/test_marthr_ablation
+tests/test_marthr_ocp
+
+# Simulation logs
+simulation_run.log
+
+# LaTeX output
+manuscript/main.pdf
+
+# Development artifacts
+conversation_opencode_vscode/
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,4 @@
+scenario,mean_rank,mean_trust,mean_energy,mean_qos_latency,mean_mcs
+attack,0.5704,0.4743,0.0009,0.466,0.534
+lossless,0.4756,0.4962,0.0107,0.3714,0.6286
+lossy,0.4859,0.4184,0.0,0.3753,0.6247

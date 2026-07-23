@@ -1,0 +1,28 @@
+MARTHR build and execution notes
+================================
+
+Python
+------
+- Python 3.10+ is recommended.
+- Install dependencies with:
+  python3 -m pip install -r requirements.txt
+
+Core validation
+---------------
+- Run the protocol smoke test with:
+  cd code_source && python3 tests/test_marthr_core.py
+
+Data pipeline
+-------------
+- Generate a sample dataset with:
+  python3 scripts/generate_sample_dataset.py
+- Produce summary statistics with:
+  python3 scripts/statistics/summary_stats.py
+- Generate figures with:
+  python3 scripts/generate_simple_plot.py
+  python3 scripts/generate_scientific_figure.py
+
+Contiki-NG / Cooja
+------------------
+- The current repository includes a portable core model and a reproducible Python pipeline.
+- A full Contiki-NG integration can be added in the next phase using the files in code_source/.
