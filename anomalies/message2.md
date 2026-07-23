@@ -1,133 +1,90 @@
-# Audit MARTHR — Prompt à copier-coller
+# Audit MARTHR — Prompt pour Claude
 
-Collez le texte ci-dessous dans une session IA (Claude, ChatGPT, etc.) :
+## Instructions
+
+1. Créez le zip : `~/MARTHR_audit.zip` (655 KB, déjà prêt)
+2. Collez le prompt ci-dessous dans Claude
+3. Claude vous demandera d'uploader le zip — faites-le
 
 ---
 
+## Prompt à copier-coller
+
 ```
-Je suis étudiant chercheur à l'Université Abdelhamid Ibn Badis de Mostaganem (Algérie). Mon projet MARTHR est un protocole de routage MANET que je prépare pour publication IEEE. J'ai besoin d'un audit complet et honnête.
+Bonjour, je suis étudiant chercheur en réseaux (MANET) à l'Université de Mostaganem, Algérie. Mon projet MARTHR est un protocole de routage context-aware que je prépare pour une publication IEEE.
 
-Le code est sur GitHub : https://github.com/madani-belacel/MARTHR_GITHUB
+Je vous envoie un fichier zip (MARTHR_audit.zip) contenant TOUT le projet. Voici sa structure :
 
-## Ce que je veux
+MARTHR_audit.zip/
+├── code_source/          # Implémentation C (12 .c/.h + Makefile + 4 tests)
+├── scripts/              # Simulateur Python + analyse + figures (17 .py)
+├── manuscript/
+│   ├── main.tex          # Manuscrit IEEE
+│   ├── bib/references.bib
+│   └── tables/           # results_table.tex + ablation_table.tex
+├── data/
+│   ├── raw/marthr_sample.csv
+│   ├── estimated/*.csv + simulations/*.csv
+│   └── README_DATA_PROVENANCE.md
+├── anomalies/            # Rapports de suivi (opencode.md + checklist.md)
+├── README.md
+└── requirements.txt
 
-Un rapport d'audit détaillé qui couvre CHAQUE fichier du projet. Je veux que vous lisiez le code ligne par ligne, le manuscrit paragraph par paragraph, et les données CSV colonne par colonne.
+## Ce que je vous demande
 
-## Comment accéder aux fichiers
+Un rapport d'audit ultra-détaillé. Pour CHAQUE fichier du zip, donnez :
 
-Utilisez web_fetch pour lire les fichiers depuis GitHub. Voici les URLs de base :
+1. Un résumé de ce que fait le fichier
+2. CHAQUE problème trouvé (bug, incohérence, valeur hardcodée, etc.) avec le numéro de ligne exact
+3. Les points positifs
+4. La sévérité (Critique / Haute / Moyenne / Basse)
 
-https://raw.githubusercontent.com/madani-belacel/MARTHR_GITHUB/main/
+## Vérifications spécifiques
 
-Ajoutez le chemin du fichier après. Par exemple :
-- Pour lire le manuscrit : https://raw.githubusercontent.com/madani-belacel/MARTHR_GITHUB/main/manuscript/main.tex
-- Pour lire le simulateur : https://raw.githubusercontent.com/madani-belacel/MARTHR_GITHUB/main/scripts/marthr_simulator.py
-- Pour lire les références : https://raw.githubusercontent.com/madani-belacel/MARTHR_GITHUB/main/manuscript/bib/references.bib
+### Code C vs Python
+Comparez les formules de calcul dans :
+- code_source/marthr_ocp.c (fonction marthr_ocp_rank)
+- code_source/marthr_rank.c (fonction marthr_compute_ocp_rank)
+- scripts/marthr_simulator.py (classe MarthrNode, méthode compute_rank)
+Est-ce que les 3 implémentent la même formule ? Sinon, lequel est correct ?
 
-## Liste des fichiers à examiner
+### Manuscrit vs Code
+Lisez manuscript/main.tex et vérifiez que :
+- Les équations décrites correspondent au code
+- Les résultats présentés dans les tableaux correspondent aux CSV de data/
+- Les légendes des figures sont honnêtes (pas de claims exagérés)
+- L'abstract ne contient pas de claims non supportés par les données
 
-Commencez par lire la structure avec cette URL :
-https://api.github.com/repos/madani-belacel/MARTHR_GITHUB/git/trees/main?recursive=1
+### Données
+Comparez :
+- data/estimated/table3_summary.csv avec manuscript/tables/results_table.tex
+- data/raw/marthr_sample.csv (combien de seeds ? combien de lignes ?)
+- Les 11 CSV dans data/estimated/simulations/ (sont-ils cohérents entre eux ?)
 
-Puis lisez CHAQUE fichier ci-dessous :
-
-### Manuscrit (lire intégralement)
-1. manuscript/main.tex
-2. manuscript/bib/references.bib
-3. manuscript/tables/results_table.tex
-4. manuscript/tables/ablation_table.tex
-
-### Code Python (lire chaque ligne)
-5. scripts/marthr_simulator.py
-6. scripts/run_simulation_campaign.py
-7. scripts/regenerate_tables.py
-8. scripts/generate_sample_dataset.py
-9. scripts/compare_with_baseline.py
-10. scripts/analyze_campaigns.py
-11. scripts/generate_ieee_figures.py
-12. scripts/generate_ablation_figure.py
-13. scripts/generate_missing_figures.py
-14. scripts/generate_latex_table.py
-15. scripts/generate_scientific_figure.py
-16. scripts/generate_simple_plot.py
-17. scripts/plot_baseline_comparison.py
-18. scripts/reproduce_project.py
-19. scripts/statistics/summary_stats.py
-20. scripts/statistics/analyze_metrics.py
-21. scripts/scenarios.py
-
-### Code C (lire chaque fichier)
-22. code_source/marthr_ocp.c
-23. code_source/marthr_ocp.h
-24. code_source/marthr_rank.c
-25. code_source/marthr_rank.h
-26. code_source/marthr_trust.c
-27. code_source/marthr_trust.h
-28. code_source/marthr_score.c
-29. code_source/marthr_score.h
-30. code_source/marthr_context.c
-31. code_source/marthr_context.h
-32. code_source/marthr_metric_log.c
-33. code_source/marthr_metric_log.h
-34. code_source/Makefile
-35. code_source/tests/test_marthr_core.c
-36. code_source/tests/test_marthr_rank.c
-37. code_source/tests/test_marthr_ablation.c
-38. code_source/tests/test_marthr_ocp.c
-
-### Données (vérifier colonnes et cohérence)
-39. data/raw/marthr_sample.csv
-40. data/estimated/summary_stats.csv
-41. data/estimated/table2_ablation.csv
-42. data/estimated/table3_summary.csv
-43. data/estimated/simulations/campaign_lossless_baseline_aggregated.csv (lire les 5 premières lignes)
-44. data/estimated/simulations/campaign_mrhof_lossless_aggregated.csv (lire les 5 premières lignes)
-45. data/README_DATA_PROVENANCE.md
-
-### Documentation
-46. README.md
-47. requirements.txt
-
-## Structure du rapport
-
-Pour CHAQUE fichier examiné, donnez :
-
-### Fichier : [nom du fichier]
-- **Résumé** : 2-3 phrases sur ce que fait ce fichier
-- **Problèmes trouvés** : liste numérotée avec numéro de ligne exact
-  - Problème 1 (ligne X) : description
-  - Problème 2 (ligne X) : description
-- **Points positifs** : ce qui est bien fait
-- **Sévérité** : Critique / Haute / Moyenne / Basse
-
-Ensuite, ajoutez une section transversale :
-
-## Incohérences entre fichiers
-Listez TOUTES les incohérences entre :
-- Le manuscrit et le code (est-ce que le code fait ce que le texte décrit ?)
-- Le code C et le code Python (est-ce que les formules sont identiques ?)
-- Les données CSV et les tableaux LaTeX (est-ce que les valeurs correspondent ?)
-- Les figures et les données (est-ce que les figures sont générées depuis les CSV ?)
-
-## Bibliographie
-Pour CHAQUE référence dans references.bib :
-- Le titre existe-t-il réellement ?
+### Bibliographie
+Pour chaque référence dans manuscript/bib/references.bib :
+- Le titre existe-t-il réellement sur Google Scholar ?
 - Les auteurs sont-ils corrects ?
-- L'année est-elle correcte ?
-- Le DOI est-il valide (si disponible) ?
+- Y a-t-il des références jamais citées dans main.tex ?
 
-## Reproductibilité
-Le pipeline reproduce_project.py peut-il être exécuté sans erreur ?
-Quels scripts dépendent les uns des autres ?
+### Pipeline de reproduction
+Lisez scripts/reproduce_project.py et vérifiez que tous les scripts existent et sont cohérents.
 
-## Résumé exécutif final
-| Catégorie | Nombre d'anomalies |
-|-----------|-------------------|
+## Format de sortie
+
+### Résumé exécutif
+| Sévérité | Nombre |
+|----------|--------|
 | Critique | X |
 | Haute | X |
 | Moyenne | X |
 | Basse | X |
 
-## Recommandations prioritaires
-Listez les 5 actions les plus urgentes à faire AVANT la soumission.
+### Détail par fichier
+Pour chaque fichier : résumé + problèmes (avec lignes) + points positifs + sévérité
+
+### Incohérences transversales
+Listez TOUTES les incohérences entre fichiers différents
+
+### 5 actions prioritaires avant soumission
 ```
