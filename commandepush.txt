@@ -1,0 +1,1 @@
+/home/madani/MARTHR/push.sh "message du commit"
