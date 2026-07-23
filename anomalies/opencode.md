@@ -1,275 +1,296 @@
-# Audit Global MARTHR — Rapport 2026-07-23
+# Audit Global MARTHR — Rapport 2026-07-23 (mise à jour)
 
 ## Résumé Exécutif
 
 | Sévérité | Nombre |
 |----------|--------|
-| Critique | 14 |
-| Haute | 10 |
-| Moyenne | 14 |
-| Basse | 5 |
-| **Total** | **43** |
+| Critique | 10 |
+| Haute | 9 |
+| Moyenne | 11 |
+| Basse | 4 |
+| **Total** | **34** |
 
-**Score de reproductibilité : 3/10** — Le simulateur fonctionne mais le pipeline de reproduction est cassé, la documentation contient des affirmations fausses, et la baseline MRHOF est buggée.
+**Évolution par rapport au premier audit (2026-07-23 matin) :**
+- **9 anomalies corrigées** (M-1, M-2, M-3, M-4, C-4, C-8, D-4, Pipeline, D-2 partielle)
+- **3 anomalies partiellement corrigées** (C-9, M-6, D-8)
+- **25 anomalies persistantes**
+- **9 nouvelles anomalies détectées**
+- **Net : 43 → 34 anomalies** (réduction de 21%)
 
-**Verdict général :** Le projet MARTHR a un potentiel scientifique réel (concept MCS multi-critères intéressant) mais présente des faiblesses techniques majeures qui empêchent actuellement une publication de qualité. Le code ns3 est fondamentalement incohérent avec les implémentations C et Python, 5 figures contiennent des données fabriquées, le pipeline de reproduction est cassé, et le manuscrit contient des claims contradictoires avec ses propres résultats.
-
----
-
-## 1. Structure du Projet
-
-### 1.1 Vue d'ensemble
-
-Le projet suit une structure bien organisée avec séparation claire entre code source (C, Python, ns3), données, scripts, et manuscrit. La documentation de cadrage est complète (README, MASTER_TRACKER, EXECUTION_PLAN, PROJECT_PROPOSAL).
-
-### 1.2 Anomalies structurelles
-
-| # | Sévérité | Description |
-|---|----------|-------------|
-| S-1 | Moyenne | Le README référence `sections/` (sections LaTeX) mais ce dossier n'existe pas dans `manuscript/` |
-| S-2 | Moyenne | Le README référence `scripts/regenerate_base_csvs.py` et `scripts/generate_marthr_figures.py` — aucun des deux n'existe |
-| S-3 | Moyenne | Le README référence `scripts/statistics/compute_ablation_stats.py` — n'existe pas |
-| S-4 | Moyenne | Le README référence `internal/METHODOLOGY_AUDIT.md` et `internal/compile.sh` — n'existent pas |
+**Score de reproductibilité : 4/10** (amélioration mineure — pipeline corrigé mais baseline MRHOF toujours buggée)
 
 ---
 
-## 2. Manuscrit
+## Bilan des Corrections
 
-### 2.1 Anomalies critiques
+### Anomalies corrigées ✅
 
-| # | Ligne(s) | Description |
-|---|----------|-------------|
-| M-1 | 82–85 | **Section `Protocol Design` dupliquée** — deux `\section{Protocol Design}` consécutifs généreront deux titres dans le PDF |
-| M-2 | 25 vs 273 | **Abstract affirme "outperforming MRHOF"** alors que le tableau de résultats (ligne 273) dit explicitement "should not be interpreted as a comparison against MRHOF". Le abstract contredit les résultats. |
-| M-3 | 36 | **2 références mentionnées sans `\cite{}`** — OLSR (clausen2003optimized) et MRHOF (gnaneswaran2012mrhof) sont mentionnés dans le texte mais jamais cités avec `\cite`. Ils apparaîtront comme `[?]` dans le PDF. |
+| ID | Description | Audit précédent |
+|----|-------------|-----------------|
+| M-1 | Section "Protocol Design" dupliquée | ✅ Supprimée |
+| M-2 | Abstract "outperforming MRHOF" | ✅ Reformulé neutre |
+| M-3 | Références OLSR/MRHOF sans `\cite{}` | ✅ Citations ajoutées |
+| M-4 | 16 entrées orphelines dans .bib | ✅ Réduit à 23 entrées, 0 orphelin |
+| C-4 | Incohérence normalisation poids C vs Python | ✅ Alignés |
+| C-8 | `update_failure()` pénalité ×0.8 vs -0.15 | ✅ Aligné à -0.15 |
+| D-4 | `simulation_log.txt` orphelin | ✅ Supprimé |
+| Pipeline | `reproduce_project.py` référait scripts inexistants | ✅ Scripts existants |
+| D-2 | README "trust = 0.0" | ✅ Reformulé |
+
+### Anomalies partiellement corrigées ⚠️
+
+| ID | Description | Résidu |
+|----|-------------|--------|
+| C-9 | Trust noeud inconnu 0.0 vs 0.5 | Python/ns3 = 0.5, mais C standalone = 0.0 |
+| M-6 | Titre "Ablation Study" trompeur | Caveats ajoutés dans le texte, mais **titre reste "Ablation Study"** |
+| D-8 | `table3_summary.csv` MRHOF non documenté | MRHOF supprimé, mais 5/8 scénarios seulement |
+
+---
+
+## 1. Manuscrit
+
+### 1.1 Anomalies critiques
+
+| # | Ligne(s) | Description | Statut |
+|---|----------|-------------|--------|
+| N-M1 | 25 vs tableau | **Incohérence Energy** — abstract: 0.5149, tableau: 0.5327 (écart 3.3%) | **NOUVEAU** |
+| M-7 | ablation l.12 | **MCS "w/o QoS" (0.7044) > Full MARTHR (0.6284)** — paradoxe inexpliqué | **PERSISTE** |
+
+### 1.2 Anomalies hautes
+
+| # | Ligne(s) | Description | Statut |
+|---|----------|-------------|--------|
+| N-M2 | bib L31-36 | **Citation MRHOF pointe vers OF0** — `gnaneswaran2012mrhof` décrit OF0 (draft-ietf-roll-of0), pas MRHOF (RFC 6779) | **NOUVEAU** |
+| M-5 | bib | **7 références arXiv 2025–2026 non vérifiables** — sans DOI, volume, ni pages | **PERSISTE** |
+
+### 1.3 Anomalies moyennes
+
+| # | Ligne(s) | Description | Statut |
+|---|----------|-------------|--------|
+| M-6/N-M7 | 356 | **Titre "Ablation Study" contredit les caveats internes** — le texte dit "not a controlled ablation" mais le titre dit "Ablation Study" | **PERSISTE** (partiel cor.) |
+| N-M3 | 411 | **"The authors" (pluriel) vs auteur unique** — "Madani Belacel" seul à la ligne 16 | **NOUVEAU** |
+| N-M4 | Figures | **2 figures orphelines** — `marthr_scientific_figure.png` et `marthr_ablation_figure.png` existent mais ne sont pas référencées dans `\includegraphics` | **NOUVEAU** |
+| N-M6 | 257 | **Référence à table pour MRHOF inexistant** — le texte dit "reported as 0.0 in Table..." mais la table ne contient pas MRHOF | **NOUVEAU** |
+
+### 1.4 Anomalies basses
+
+| # | Description | Statut |
+|---|-------------|--------|
+| N-M5 | 9 entrées `and others` dans .bib (auteurs tronqués) | **NOUVEAU** |
+
+### 1.5 Points positifs
+
+- ✅ Structure complète : Abstract → Intro → Related Work → Protocol Design → Implementation → Evaluation → Results → Discussion → Conclusion → Acknowledgments
+- ✅ 14/14 figures référencées existent
+- ✅ 0 entrée orpheline dans .bib
+- ✅ 0 warning BibTeX
+- ✅ Cohérence Trust/Latency/MCS entre abstract et tableau
+
+---
+
+## 2. Code Source
+
+### 2.1 Anomalies critiques (code ns3)
+
+| # | Fichier | Ligne(s) | Description | Statut |
+|---|---------|----------|-------------|--------|
+| C-1 | `ns3_setup/marthr-rank.cc` | 50 | **`IsBetter()` logique INVERSÉE** — ns3: "higher is better" vs C/Python: "lower is better" | **PERSISTE** |
+| C-2 | `ns3_setup/marthr-rank.cc` | 28–31 | **`ComputeRank()` sans inversion MCS ni pénalité sauts** — retourne MCS brut | **PERSISTE** |
+| C-10 | `ns3_setup/marthr-routing-protocol.cc` | 43–52 | **`RouteInput()` retourne TOUJOURS `false`** — aucun paquet routé | **PERSISTE** |
 
 ### 2.2 Anomalies hautes
 
-| # | Ligne(s) | Description |
-|---|----------|-------------|
-| M-4 | — | **16 entrées orphelines dans references.bib** — jamais citées dans le manuscrit (16/37 = 43% du fichier .bib inutilisé) |
-| M-5 | 269–316 | **7 références arXiv 2025–2026 non vérifiables** — sans DOI, ni volume, ni pages. Les IDs arXiv (2606.xxxxx = juin 2026) sont dans un futur proche. Impossible de confirmer leur existence réelle sans accès web à arXiv. |
-| M-6 | 359–370 | **Ablation "scenario-proxied" qualifiée trompeusement d'"ablation study"** — chaque variante utilise un scénario différent (pas de contrôle), ce n'est pas une vraie ablation |
-| M-7 | ablation l.12 | **MCS de "w/o QoS" (0.7044) > Full MARTHR (0.6284)** — supprimer QoS améliore le MCS, contradictoire avec le claim que les trois critères sont bénéfiques ensemble |
+| # | Fichier | Ligne(s) | Description | Statut |
+|---|---------|----------|-------------|--------|
+| C-3 | `ns3_setup/marthr-context.cc` | 19–22 | **Poids de contexte ns3 différents** — (0.35, 0.33, 0.32) vs C/Python (0.35, 0.40, 0.25) | **PERSISTE** |
+| C-5 | `ns3_setup/marthr-routing-protocol.cc` | 73–75 | **`UpdateMetrics()` valeurs HARDCODEES** — trust=0.8, energy=0.7, qos=0.9 toujours | **PERSISTE** |
+| C-7 | `ns3_setup/marthr-trust-table.h` vs `routing-protocol.h` | — | **Incohérence Ipv4 vs Ipv6** — routage IPv4, trust table IPv6 | **PERSISTE** |
+| C-15 | `scripts/analyze_campaigns.py` | 58 | **`baseline_mrhof()` crash systématique** — `self.simulations_dir` inexistant | **PERSISTE** |
 
 ### 2.3 Anomalies moyennes
 
-| # | Ligne(s) | Description |
-|---|----------|-------------|
-| M-8 | 36 | OLSR décrit comme "infrastructure-oriented" — incorrect, OLSR est un protocole ad hoc conçu spécifiquement pour les MANETs (RFC 3626) |
-| M-9 | — | Pas de section "Acknowledgments" (attendue pour IEEE) |
-| M-10 | — | Pas de "Data availability statement" |
-| M-11 | 59 | Claim "reinforcement learning approaches have been proposed" sans citation |
-| M-12 | 324 | "MARTHR produces more uniform rank distributions" — "more uniform" par rapport à quoi ? Aucune baseline dans la figure |
-| M-13 | 335 | "context-aware adaptation does not introduce excessive control overhead" — sans comparaison quantitative |
-| M-14 | 357 | "MARTHR explores a wider range of operating points" — figure Pareto ne montre que MARTHR, pas de comparaison |
+| # | Fichier | Description | Statut |
+|---|---------|-------------|--------|
+| C-6 | `ns3_setup/marthr-routing-protocol.cc` | TrustTable instancié mais jamais utilisé | **PERSISTE** |
+| C-11 | ns3 headers vs C headers | Conflit de header guards identiques | **PERSISTE** |
+| C-13 | `run_simulation_campaign.py:252–256` | MRHOF "attack" sans simulation d'attaque réelle | **PERSISTE** |
+| N-C1 | `generate_ieee_figures.py:153` | `ax.legend()` sans label (warning matplotlib) | **NOUVEAU** |
+| N-C2 | `generate_ablation_figure.py:16–27` | Fallback avec données 0.0 si colonne `variant` absente | **NOUVEAU** |
+
+### 2.4 Anomalies basses
+
+| # | Fichier | Description | Statut |
+|---|---------|-------------|--------|
+| C-12 | `marthr_ocp.c` vs `marthr_rank.c` | Duplication de fonction rank | **PERSISTE** |
+| C-14 | `run_simulation_campaign.py:287` | Compteur hardcoded "8" au lieu de 11 | **PERSISTE** |
+
+### 2.5 Tableau de cohérence MCS
+
+| Critère | C standalone | Python (core) | Python (simulator) | ns3 |
+|---------|-------------|---------------|---------------------|-----|
+| Poids base (NORMAL) | 0.35/0.40/0.25 | 0.35/0.40/0.25 | N/A | **0.35/0.33/0.32** |
+| Inversion MCS | ✅ (1-mcs) | ✅ | ✅ | **❌ NON** |
+| Pénalité sauts | ✅ (hop×0.1) | ✅ | ✅ | **❌ NON** |
+| IsBetter | lower better | lower better | lower better | **higher better** |
+| Trust failure | -0.15 | -0.15 | -0.15 | -0.15 |
+| Trust inconnu | 0.0 | 0.5 | 0.5 | 0.5 |
+| Normalisation | si >1.0 | si >1.0 | si >1.0 | toujours |
+
+### 2.6 Recherche de placeholders
+
+Aucun `TODO`, `FIXME`, `TBD`, `placeholder`, `ESTIMATED` trouvé dans les fichiers `.c`, `.h`, `.py`.
 
 ---
 
-## 3. Code Source
+## 3. Données & Reproductibilité
 
 ### 3.1 Anomalies critiques
 
-| # | Fichier | Ligne(s) | Description |
-|---|---------|----------|-------------|
-| C-1 | `ns3_setup/marthr-rank.cc` | 50 | **`IsBetter()` logique INVERSÉE** — ns3 dit "higher is better" alors que C et Python disent "lower is better". Toute décision de routage ns3 est inversée. |
-| C-2 | `ns3_setup/marthr-rank.cc` | 28–31 | **`ComputeRank()` ne contient PAS l'inversion MCS ni la pénalité de sauts** — retourne directement le MCS brut, contrairement à C (`1-mcs + hop*0.1`) et Python |
-| C-3 | `ns3_setup/marthr-context.cc` | 20–22 | **Poids de contexte de base DIFFÉRENTS** — ns3: (0.35, 0.33, 0.32) vs C/Python: (0.35, 0.40, 0.25) |
-| C-4 | `code_source/marthr_context.c` vs `code_source/marthr_core.py` | 44–49 vs 33–34 | **Incohérence normalisation poids** — C: normalise seulement si somme > 1.0; Python: normalise TOUJOURS. Résultats MCS différents pour tout contexte où somme < 1.0 |
-| C-5 | `ns3_setup/marthr-routing-protocol.cc` | 72–81 | **`UpdateMetrics()` utilise des valeurs HARDCODEES** — trust=0.8, energy=0.7, qos=0.9 toujours identiques. Aucune métrique réelle extraite. |
-| C-6 | `ns3_setup/marthr-routing-protocol.cc` | 25, 72–81 | **Objet `MarthrTrustTable` jamais utilisé** dans le protocole — créé mais jamais appelé. De même pour `m_rank`. |
-| C-7 | `ns3_setup/marthr-trust-table.h` vs `marthr-routing-protocol.h` | — | **Incohérence Ipv4 vs Ipv6** — le routage utilise Ipv4 mais la table de confiance utilise Ipv6Address. Mapping impossible. |
-| C-8 | `code_source/marthr_core.py` | 65 | **`update_failure()` pénalité MULTIPLICATIVE (*0.8) vs SOUSTRACTIVE (-0.15)** — different de C, ns3 et simulator |
-| C-9 | `code_source/marthr_core.py` | 70 | **Noeud inconnu = 0.0 vs 0.5** — C retourne 0.0, marthr_simulator retourne 0.5 (neutre), ns3 retourne 0.5. Le modèle de confiance n'est pas cohérent. |
-| C-10 | `ns3_setup/marthr-routing-protocol.cc` | 43–52 | **`RouteInput()` retourne TOUJOURS `false`** — le protocole ns3 ne fait aucun routage intelligent |
+| # | Description | Statut |
+|---|-------------|--------|
+| D-1 | **`MrhofSimulator` ne sélectionne JAMAIS de parent** — MRHOF baseline = vide (mcs=0.0, rank=1.0 partout). Cause: rank candidat ≥ 1.8 > rank initial 1.0, et MRHOF n'accepte que les ranks inférieurs | **PERSISTE** |
 
 ### 3.2 Anomalies hautes
 
-| # | Fichier | Description |
-|---|---------|-------------|
-| C-11 | ns3 headers vs C headers | **Conflit de header guards** — `MARTHR_CONTEXT_H`, `MARTHR_RANK_H`, `MARTHR_SCORE_H` identiques entre C et ns3 |
-| C-12 | `marthr_ocp.c` vs `marthr_rank.c` | **Duplication de code** — `marthr_ocp_rank()` et `marthr_compute_ocp_rank()` implémentent la même logique |
-| C-13 | `run_simulation_campaign.py:252–256` | **MRHOF scenario "attack" sans simulation réelle d'attaque** — juste 5% perte paquets, pas de noeuds malveillants |
-| C-14 | `run_simulation_campaign.py:287` | **Compteur de succès inexact** — affiche "8 scenarios" alors qu'il y en a 11 |
-| C-15 | `analyze_campaigns.py:48–53` | **`baseline_mrhof()` lève TOUJOURS RuntimeError** — Table 1 ne peut jamais être générée |
+| # | Description | Statut |
+|---|-------------|--------|
+| D-6 | **`summary_stats.csv` ne couvre que 3/11 scénarios** (27%) — les 8 autres sont absents | **PERSISTE** |
+| D-7 | **`convergence_time` toujours = 0** — bug: initialisé à -1 mais condition vérifie == 0 (jamais vraie) | **PERSISTE + NOUVEAU BUG** |
+| N-D2 | **`generate_sample_dataset.py` ne produit que 3/8 scénarios** — manque energy_stress, stress_large_grid, mobility_dynamic, qos_sensitive, mixed_attack_energy | **NOUVEAU** |
 
-### 3.3 Tableau de cohérence MCS
+### 3.3 Anomalies moyennes
 
-| Critère | C | Python (core) | Python (simulator) | ns3 |
-|---------|---|---------------|---------------------|-----|
-| Poids base (NORMAL) | 0.35/0.40/0.25 | 0.35/0.40/0.25 | N/A | **0.35/0.33/0.32** |
-| Inversion MCS dans rang | Oui (1-mcs) | Oui | Oui | **NON** |
-| Pénalité sauts | Oui (hop×0.1) | Oui | Oui | **NON** |
-| IsBetter | lower better | lower better | lower better | **higher better** |
-| Trust failure penalty | -0.15 | ×0.8 | -0.15 | -0.15 |
-| Trust inconnu | 0.0 | 0.0 | 0.5 | 0.5 |
+| # | Description | Statut |
+|---|-------------|--------|
+| D-3 | **Noms de scénarios incohérents** — CSV brut: courts (`lossless`) vs estimated: longs (`lossless_baseline`) | **PERSISTE** |
+| D-5 | **`metric_summary.csv`** utilise `latency`/`mcs_score` vs `qos_latency`/`mcs` ailleurs | **PERSISTE** |
+| D-8 | **`table3_summary.csv`** ne couvre que 5/8 scénarios (MRHOF supprimé) | **PARTIEL corr.** |
+| N-D3 | **`table2_ablation.csv`** — labels variantes incohérents avec noms de scénarios README | **NOUVEAU** |
 
----
-
-## 4. Données
-
-### 4.1 Nature des données
-
-Les données sont issues d'un **simulateur Python simplifié** (`marthr_simulator.py`), pas de simulations réelles ns3 ni de capteurs physiques. Les scénarios sont des grilles synthétiques (5×5 à 8×8) avec bruit gaussien. Les données ne sont pas "fabriquées" au sens inventées, mais elles sont **simulées** et **reproductibles** grâce à `random.seed()`.
-
-### 4.2 Anomalies de données
-
-| # | Sévérité | Description |
-|---|----------|-------------|
-| D-1 | Critique | **`MrhofSimulator` ne sélectionne JAMAIS de parent** — MRHOF baseline = vide (mcs=0.0, rank=1.0 partout). La comparaison MRHOF vs MARTHR est biaisée. |
-| D-2 | Haute | **README dit "trust = 0.0" mais les données montrent ~0.45–0.50** — note obsolète dans `README_DATA_PROVENANCE.md:78` |
-| D-3 | Haute | **Noms de scénarios incohérents** — CSV brut: `lossless, lossy, attack` vs CSV estimated: `lossless_baseline, lossy_network, attack_high_threat` |
-| D-4 | Haute | **`simulation_log.txt` orphelin** — 3 lignes seulement, valeurs sans rapport avec les CSV (trust=0.81 vs ~0.5 dans CSV) |
-| D-5 | Moyenne | **`metric_summary.csv` utilise `latency` vs `qos_latency` ailleurs** — schéma incohérent |
-| D-6 | Moyenne | **`summary_stats.csv` ne couvre que 3/8 scénarios** — incomplet |
-| D-7 | Moyenne | **`convergence_time` toujours = 0** dans le CSV brut — métrique inutile/non implémentée |
-| D-8 | Moyenne | **`table3_summary.csv` contient 10 scénarios** (dont 3 MRHOF) non documentés |
-
----
-
-## 5. Reproductibilité
-
-### 5.1 Pipeline de reproduction
-
-**`reproduce_project.py` est cassé.** Il référence 10 scripts qui n'existent pas dans `scripts/` :
-
-```
-❌ scripts/regenerate_tables.py
-❌ scripts/statistics/summary_stats.py
-❌ scripts/statistics/analyze_metrics.py
-❌ scripts/analyze_campaigns.py
-❌ scripts/generate_latex_table.py
-❌ scripts/generate_ieee_figures.py
-❌ scripts/generate_missing_figures.py
-❌ scripts/generate_ablation_figure.py
-❌ scripts/generate_scientific_figure.py
-❌ scripts/generate_simple_plot.py
-```
-
-Seuls `run_simulation_campaign.py` et `generate_sample_dataset.py` existent réellement.
-
-### 5.2 Score de reproductibilité
+### 3.4 Score de reproductibilité
 
 | Composant | Statut |
 |-----------|--------|
 | Simulateur MARTHR | ✅ Fonctionnel |
 | Simulateur MRHOF | ❌ Buggé (jamais de parent sélectionné) |
-| Pipeline de reproduction | ❌ Cassé (10 scripts manquants) |
-| Documentation de provenance | ⚠️ Partiellement obsolète |
+| Pipeline `reproduce_project.py` | ✅ Scripts référencés existent |
+| Documentation provenance | ⚠️ Partiellement mise à jour |
 | Données CSV | ✅ Présentes et structurées |
 | Figures | ⚠️ 5/16 avec données fabriquées |
 
 ---
 
-## 6. Figures
+## 4. Figures
 
-### 6.1 Inventaire
+### 4.1 Inventaire
 
-16 figures référencées dans `main.tex`, 16 fichiers existants dans `manuscript/Figures/` — correspondance parfaite.
+16 figures dans `manuscript/Figures/` — 14 référencées dans `main.tex`, 2 orphelines.
 
-### 6.2 Anomalies
+### 4.2 Anomalies
 
-| # | Sévérité | Description |
-|---|----------|-------------|
-| F-1 | Haute | **5 figures avec données purement fabriquées** (hardcodées dans `generate_missing_figures.py`) : `marthr_dodag_trust.png`, `marthr_pareto_frontier.png`, `marthr_control_overhead.png`, `marthr_attack_detection.png`, `marthr_context_weights.png` |
-| F-2 | Haute | **`baseline_comparison.csv` manquant** — `plot_baseline_comparison.py` crashera au runtime |
-| F-3 | Moyenne | **`summary_stats.csv` couvre 3/8 scénarios** — figures "scientific" et "summary" incomplètes |
-| F-4 | Moyenne | **3 scénarios sans aucune visualisation** (mobility_dynamic, qos_sensitive, mixed_attack_energy) |
-| F-5 | Basse | `ax.legend()` sans label dans `figure4_latency_comparison()` — warning matplotlib |
-| F-6 | Basse | Redondance `tick_labels` dans `figure5_rank_distribution()` |
+| # | Sévérité | Description | Statut |
+|---|----------|-------------|--------|
+| F-1 | Critique | **5 figures avec données purement fabriquées** (hardcodées dans `generate_missing_figures.py`) : `marthr_dodag_trust.png`, `marthr_pareto_frontier.png`, `marthr_control_overhead.png`, `marthr_attack_detection.png`, `marthr_context_weights.png` | **PERSISTE** |
+| F-2 | Critique | **`baseline_comparison.csv` manquant** — `plot_baseline_comparison.py` crashera au runtime | **PERSISTE** |
+| F-3 | Haute | **`summary_stats.csv` couvre 3/11 scénarios** — figures incomplètes | **PERSISTE** |
+| F-4 | Haute | **8 scénarios sans aucune visualisation** | **PERSISTE** |
+| F-5 | Basse | `ax.legend()` sans label dans `figure4_latency_comparison()` | **PERSISTE** |
+| F-6 | Basse | Redondance `tick_labels` dans `figure5_rank_distribution()` | **PERSISTE** |
 
----
-
-## 7. Bibliographie
-
-### 7.1 Statistiques
-
-| Métrique | Valeur |
-|----------|--------|
-| Total entrées .bib | 37 |
-| Entrées citées | 21 |
-| Entrées orphelines | 16 (43%) |
-| Références arXiv non vérifiables | 7 |
-| Warnings BibTeX | 1 (`@rfc` non géré par IEEEtran.bst) |
-
-### 7.2 Problèmes
-
-| # | Sévérité | Description |
-|---|----------|-------------|
-| B-1 | Haute | **7 références arXiv 2025–2026** sans DOI, volume, ni pages — impossibles à vérifier |
-| B-2 | Moyenne | **Type `@rfc` non reconnu** par IEEEtran.bst — `winter2012rpl` traité comme `@misc` |
-| B-3 | Moyenne | **Auteurs "and others"** dans 12 entrées — réduit la traçabilité |
-| B-4 | Basse | 16 entrées orphelines alourdissent inutilement le fichier .bib |
+**Aucune anomalie de figures n'a été corrigée.**
 
 ---
 
-## 8. Actions de Correction Recommandées
+## 5. Bibliographie
 
-### Priorité 1 — Critique (avant tout autre travail)
+### 5.1 Statistiques
+
+| Métrique | Avant | Après |
+|----------|-------|-------|
+| Total entrées .bib | 37 | 23 |
+| Entrées citées | 21 | 23 |
+| Entrées orphelines | 16 | **0** |
+| Références arXiv | 7 | 7 |
+| Warnings BibTeX | 1 | **0** |
+
+### 5.2 Problèmes restants
+
+| # | Sévérité | Description |
+|---|----------|-------------|
+| B-1 | Haute | **7 références arXiv 2025–2026** sans DOI — impossibles à vérifier |
+| B-2 | Haute | **Citation MRHOF pointe vers OF0** — `gnaneswaran2012mrhof` décrit OF0, pas MRHOF |
+| B-3 | Basse | 9 entrées `and others` (auteurs tronqués) |
+
+---
+
+## 6. Actions de Correction Recommandées
+
+### Priorité 1 — Critique
 
 | # | Action | Impact |
 |---|--------|--------|
-| A-1 | **Corriger le code ns3** — aligner `IsBetter()`, `ComputeRank()`, poids de contexte, et intégrer `TrustTable` et `Rank` dans le protocole | Le ns3 est actuellement inutilisable |
-| A-2 | **Corriger `MrhofSimulator`** — le clamp à [0,1] détruit l'ETX. Utiliser une plage non bornée ou ajuster la logique de sélection de parent | Baseline MRHOF = vide |
-| A-3 | **Réécrire ou supprimer `reproduce_project.py`** — aligner sur les scripts existants | Pipeline de reproduction cassé |
-| A-4 | **Supprimer le duplicata de section "Protocol Design"** dans `main.tex:82–85` | Deux titres dans le PDF |
-| A-5 | **Corriger l'abstract** — supprimer "outperforming MRHOF" ou reformuler les résultats | Claim contradictoire avec les résultats |
+| A-1 | **Corriger le code ns3** — aligner `IsBetter()`, `ComputeRank()`, poids de contexte, intégrer TrustTable et Rank dans le protocole, corriger `RouteInput()` | Le ns3 est non-fonctionnel |
+| A-2 | **Corriger `MrhofSimulator`** — le clamp à [0,1] détruit l'ETX. Ajuster rank initial ou logique de sélection | Baseline MRHOF = vide |
+| A-3 | **Corriger l'incohérence Energy** dans le manuscrit — abstract (0.5149) vs tableau (0.5327) | Claim erroné |
+| A-4 | **Corriger la citation MRHOF** — remplacer OF0 par la vraie référence MRHOF (RFC 6779) | Mauvaise référence |
+| A-5 | **Remplacer les données fabriquées** dans `generate_missing_figures.py` par des données CSV | 5 figures sans base empirique |
+| A-6 | **Régénérer ou restaurer `baseline_comparison.csv`** | Script crash |
 
 ### Priorité 2 — Haute
 
 | # | Action | Impact |
 |---|--------|--------|
-| A-6 | **Ajouter `\cite{}` pour OLSR et MRHOF** dans `main.tex:36` | Références affichées comme `[?]` |
-| A-7 | **Remplacer les données fabriquées** dans `generate_missing_figures.py` par des données issues des CSV | 5 figures sans base empirique |
-| A-8 | **Régénérer ou restaurer `baseline_comparison.csv`** | Script crash |
-| A-9 | **Corriger la pénalité de trust** dans `marthr_core.py` (×0.8 → -0.15) pour aligner avec C | Incohérence de calcul |
-| A-10 | **Unifier la valeur de trust pour noeud inconnu** (0.0 vs 0.5) entre toutes les implémentations | Comportement imprévisible |
-| A-11 | **Corriger la normalisation des poids** dans `marthr_context.c` (ou Python) pour aligner | Résultats MCS différents |
-| A-12 | **Vérifier les 7 références arXiv** sur arXiv.org | Risque de références fabriquées |
-| A-13 | **Renommer "ablation study" en "scenario-proxied component analysis"** dans le manuscrit | Terminologie trompeuse |
-| A-14 | **Supprimer les 16 entrées orphelines** de `references.bib` ou les citer | Fichier .bib inutilement alourdi |
+| A-7 | **Vérifier les 7 références arXiv** sur arXiv.org | Risque de références fabriquées |
+| A-8 | **Renommer "Ablation Study"** en "Scenario-Proxied Component Analysis" | Terminologie trompeuse |
+| A-9 | **Supprimer les 2 figures orphelines** ou les référencer | Code mort |
+| A-10 | **Corriger `convergence_time`** — le bug -1 vs 0 empêche tout calcul | Métrique inutile |
+| A-11 | **Compléter `summary_stats.csv`** avec les 8+ scénarios | Données incomplètes |
+| A-12 | **Corriger `analyze_campaigns.py`** — implémenter `baseline_mrhof()` | Script inutilisable |
+| A-13 | **Unifier les noms de scénarios** entre CSV, README et scripts | Traçabilité brisée |
+| A-14 | **Corriger la référence à table MRHOF** dans le texte (ligne 257) | Affirmation fausse |
 
 ### Priorité 3 — Moyenne
 
 | # | Action | Impact |
 |---|--------|--------|
-| A-15 | **Unifier les noms de scénarios** entre CSV, README et scripts | Traçabilité brisée |
-| A-16 | **Mettre à jour `README_DATA_PROVENANCE.md`** — corriger "trust = 0.0" | Documentation fausse |
-| A-17 | **Supprimer ou documenter `simulation_log.txt`** | Fichier orphelin |
-| A-18 | **Compléter `summary_stats.csv`** avec les 8 scénarios | Données incomplètes |
-| A-19 | **Supprimer la duplication de header guards** entre C et ns3 | Conflits potentiels |
-| A-20 | **Supprimer la duplication `marthr_ocp_rank`** | Code maintenu en double |
-| A-21 | **Corriger le compteur de succès** dans `run_simulation_campaign.py:287` | Affichage erroné |
-| A-22 | **Corriger `analyze_campaigns.py`** — implémenter `baseline_mrhof()` | Script inutilisable |
-| A-23 | **Ajouter section "Acknowledgments" et "Data availability"** | Standard IEEE |
-| A-24 | **Corriger la description d'OLSR** — n'est pas "infrastructure-oriented" | Erreur factuelle |
-| A-25 | **Corriger `ax.legend()` orphelin** dans `generate_ieee_figures.py` | Warning matplotlib |
+| A-15 | Corriger "The authors" → "The author" dans les acknowledgments | Incohérence |
+| A-16 | Ajouter une explication au paradoxe MCS "w/o QoS" > Full | Confusion lecteur |
+| A-17 | Corriger `metric_summary.csv` — aligner `latency`/`mcs_score` | Schéma incohérent |
+| A-18 | Corriger `ax.legend()` orphelin dans `generate_ieee_figures.py` | Warning |
+| A-19 | Corriger `generate_ablation_figure.py` fallback | Figure trompeuse |
+| A-20 | Corriger `table2_ablation.csv` labels variantes | Incohérence |
 
 ### Priorité 4 — Basse
 
 | # | Action | Impact |
 |---|--------|--------|
-| A-26 | Supprimer redondance `tick_labels` dans `figure5_rank_distribution()` | Code inutile |
-| A-27 | Supprimer `set_xticks()` dupliqué dans `generate_ieee_figures.py:73–74` | Code inutile |
-| A-28 | Ajouter `#include <stdio.h>` dans `test_marthr_core.c` | Dépendance implicite |
-| A-29 | Initialiser alpha/beta/gamma dans `marthr_ocp.c:22–23` | Style défensif |
-| A-30 | Documenter `scenarios.py` avec des seeds fixes | Reproductibilité mineure |
+| A-21 | Supprimer redondance `tick_labels` dans `figure5_rank_distribution()` | Code fragile |
+| A-22 | Supprimer `set_xticks()` dupliqué dans `generate_ieee_figures.py:73–74` | Code inutile |
+| A-23 | Vérifier complétude des 9 entrées `and others` dans .bib | Auteurs tronqués |
+| A-24 | Supprimer la duplication `marthr_ocp_rank` | Code maintenu en double |
 
 ---
 
 ## Conclusion
 
-Le projet MARTHR présente une idée scientifique intéressante (routing multi-critères avec trust adaptatif) mais souffre de problèmes techniques fondamentaux qui empêchent actuellement une publication de qualité :
+Le projet MARTHR a progressé depuis le premier audit : **9 anomalies corrigées** (dont 4 critiques : section dupliquée, abstract contradictoire, citations manquantes, .bib nettoyé). Le code C standalone et Python sont désormais plus cohérents (normalisation alignée, pénalité de trust unifiée).
 
-1. **Le code ns3 est inachevé et incohérent** — il ne représente pas fidèlement le protocole MARTHR
-2. **Le pipeline de reproduction est cassé** — 10 scripts référencés n'existent pas
-3. **5 figures contiennent des données fabriquées** — inacceptable pour un papier scientifique
-4. **Le manuscrit contient des claims contradictoires** — abstract vs résultats
-5. **La baseline MRHOF est buggée** — la comparaison est biaisée en faveur de MARTHR
+Cependant, **les problèmes les plus bloquants persistent** :
 
-**Probabilité de publication après amélioration : 40–60%** — nécessite un travail substantiel de correction technique avant de pouvoir soumettre.
+1. **Le code ns3 reste non-fonctionnel** — IsBetter inversé, ComputeRank sans inversion, RouteInput retourne false, TrustTable inutilisé, UpdateMetrics hardcodé. Le ns3 ne peut pas produire de résultats publiables.
+
+2. **La baseline MRHOF est toujours buggée** — aucun parent n'est jamais sélectionné, rendant toute comparaison MARTHR vs MRHOF invalide.
+
+3. **5 figures contiennent des données fabriquées** — inacceptable pour un papier scientifique.
+
+4. **Le pipeline de reproduction fonctionne** mais les données sous-jacentes sont incomplètes (3/11 scénarios dans summary_stats).
+
+5. **De nouvelles anomalies manuscrit** sont apparues : incohérence Energy abstract/tableau, erreur de citation MRHOF→OF0.
+
+**Probabilité de publication après amélioration : 50–65%** — progrès notable mais le code ns3 et la baseline MRHOF restent les blockers majeurs.
 
 ---
 
-*Rapport généré le 2026-07-23 par audit opencode*
+*Rapport généré le 2026-07-23 par audit opencode (mise à jour)*
 *Méthodologie suivie : anomalies/METHODOLOGIE_EVALUATION.md*
+*Comparaison avec le premier audit : anomalies/opencode.md (version initiale)*

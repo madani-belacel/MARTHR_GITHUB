@@ -61,3 +61,5 @@ conversation_opencode_vscode/
 # OS files
 .DS_Store
 Thumbs.db
+push.sh
+.git/credentials

@@ -1,273 +1,298 @@
-# Audit global MARTHR — Rapport du 23 juillet 2026
+# Audit global MARTHR — Ré-audit du 23 juillet 2026
 
-**Périmètre :** `/home/madani/MARTHR`  
-**Méthodologie appliquée :** [METHODOLOGIE_EVALUATION.md](METHODOLOGIE_EVALUATION.md)  
-**Instructions de filtrage :** [message-IA.md](message-IA.md)  
+**Périmètre :** dépôt `/home/madani/MARTHR`  
+**Méthodologie :** [METHODOLOGIE_EVALUATION.md](METHODOLOGIE_EVALUATION.md)  
+**Filtres :** [message-IA.md](message-IA.md)  
 **Mode :** lecture seule ; aucun fichier du projet n’a été modifié pendant l’audit.
 
-Les commentaires en français, les dossiers d’audit et les trackers internes ont été ignorés comme demandé. Les constats portent sur la cohérence scientifique, le code, les données, la reproductibilité, les figures, les tableaux et le manuscrit.
+Les commentaires français, les dossiers d’audit et les trackers internes ont été exclus conformément aux instructions.
 
 ## Résumé exécutif
 
 | Sévérité | Nombre |
 |----------|-------:|
-| Critique | 4 |
-| Haute | 8 |
+| Critique | 3 |
+| Haute | 7 |
 | Moyenne | 6 |
 | Basse | 3 |
 
-Le dépôt contient une architecture conceptuelle intéressante et plusieurs composants de prototype réutilisables. Toutefois, il n’est pas actuellement possible de considérer les résultats comme une évaluation scientifique comparative reproductible.
+Le projet a progressé depuis l’audit précédent : les modules C sont présents, les campagnes MARTHR et MRHOF sont archivées, le clamp ETX `[0,1]` a été retiré et le doublon de section du manuscrit a été corrigé. L’ablation est également reconnue explicitement comme non contrôlée.
 
-Les risques principaux sont : figures générées depuis des constantes plutôt que depuis des données expérimentales ; baseline MRHOF invalide ; scaffold NS-3 non fonctionnel ; ablations non contrôlées ; affirmations du manuscrit plus fortes que les preuves ; divergences entre les implémentations C, Python et NS-3.
+Le projet ne constitue toutefois toujours pas une évaluation comparative publiable. Les blocages principaux sont : figures encore alimentées par des constantes, baseline MRHOF et analyse statistique incomplètes, pipeline de reproduction non fiable, ablation non contrôlée, tableaux CSV/LaTeX divergents, incohérences C/Python/NS-3 et scaffold NS-3 non fonctionnel.
 
-## 1. Structure du projet
+**Verdict :** prototype algorithmique intéressant, mais non publiable comme étude comparative expérimentale en l’état.
 
-### C1 — Figures scientifiques partiellement fabriquées par constantes codées en dur
+## 1. État des corrections depuis l’audit précédent
 
-**Sévérité : Critique**
+### Corrections ou améliorations confirmées
 
-Dans [generate_missing_figures.py](../scripts/generate_missing_figures.py#L80-L161), plusieurs figures utilisent directement des valeurs codées en dur :
+- Les modules C de contexte, confiance, score, rang, OCP et journalisation sont présents dans [code_source](../code_source), avec un [Makefile](../code_source/Makefile#L1-L20) et des tests.
+- Le script de campagne [run_simulation_campaign.py](../scripts/run_simulation_campaign.py#L1-L49) prévoit 20 seeds et les sorties contiennent huit campagnes MARTHR et trois campagnes MRHOF.
+- [estimate_etx()](../scripts/marthr_simulator.py#L365-L370) retourne maintenant $1/\mathrm{PRR}$ sans clamp supérieur à 1.
+- Le doublon de section `Protocol Design` n’est plus présent dans [main.tex](../manuscript/main.tex#L101-L103).
+- La limitation méthodologique de l’ablation est reconnue dans [main.tex](../manuscript/main.tex#L361-L370).
+
+### Corrections insuffisantes
+
+La correction du clamp ETX élimine l’anomalie locale, mais ne rend pas la baseline comparable : sélection dépendante de l’ordre, absence de validation DAG, métriques différentes et pipeline statistique cassé subsistent.
+
+## 2. Anomalies critiques
+
+### C1 — Figures scientifiques encore générées par constantes codées en dur
+
+**Statut : encore présent.**
+
+Dans [generate_missing_figures.py](../scripts/generate_missing_figures.py#L80-L161), les figures utilisent directement :
 
 - `weights = [0.48, 0.35, 0.17]` ;
-- vecteurs `x` et `y` pour Pareto ;
+- les coordonnées `x` et `y` d’une frontière de Pareto ;
 - `overhead = [0.08, 0.11, 0.16, 0.19]` ;
 - `detection = [0.71, 0.77, 0.91, 0.88]`.
 
-Ces valeurs ne proviennent d’aucun fichier de données, d’une simulation ou d’une trace NS-3. Les figures sont incluses dans [main.tex](../manuscript/main.tex#L188-L201) et [main.tex](../manuscript/main.tex#L386-L426).
+Le script ne charge aucun CSV de campagne pour ces sorties, référencées notamment dans [main.tex](../manuscript/main.tex#L125-L143) et [main.tex](../manuscript/main.tex#L316-L344).
 
-**Conséquence :** les résultats d’overhead, de détection et de frontière de Pareto sont présentés comme expérimentaux sans être démontrés par des données traçables.
+**Conséquence :** l’overhead, la détection et la frontière de Pareto ne sont pas traçables vers une expérience. Les valeurs doivent être considérées comme illustratives, et non comme résultats expérimentaux.
 
-**Correction :** supprimer ces figures ou les marquer explicitement comme conceptuelles ; sinon les régénérer depuis des données brutes versionnées avec définition de métrique, graines, unités et dispersion.
+**Action :** relier chaque figure à un CSV, un script, des paramètres et des seeds ; supprimer ou requalifier les figures hardcodées ; produire un manifeste figure → données → commande.
 
-### C2 — Baseline MRHOF invalide dans le simulateur Python
+### C2 — Baseline MRHOF non intégrée correctement
 
-**Sévérité : Critique**
+**Statut : encore présent, malgré la correction ETX.**
 
-Dans [marthr_simulator.py](../scripts/marthr_simulator.py#L122-L130), `estimate_etx()` calcule `1.0 / prr` puis tronque ETX à `[0, 1]`. Comme `prr <= 1`, ETX vaut donc systématiquement `1.0`. Le rang MRHOF est ensuite borné à `1.0` dans [marthr_simulator.py](../scripts/marthr_simulator.py#L114-L120).
+Dans [marthr_simulator.py](../scripts/marthr_simulator.py#L314-L352), la sélection du parent est séquentielle et ne garantit pas explicitement un minimum global parmi tous les candidats. MARTHR et MRHOF ne vérifient pas non plus qu’un parent possède un rang strictement inférieur, qu’il est connecté à la racine ou qu’aucun cycle n’est introduit.
 
-Les données [campaign_mrhof_lossless_aggregated.csv](../data/estimated/simulations/campaign_mrhof_lossless_aggregated.csv#L2-L15) montrent `rank=1.0`, `parent=0`, `hop_count=0`, `mcs=0.0` et `qos_latency=1.0` pour les nœuds non racine.
+La baseline écrit `trust = 0.0`, `mcs = 1.0 - etx` et un `qos_latency` dérivé dans [marthr_simulator.py](../scripts/marthr_simulator.py#L386-L390). Ces colonnes ne sont donc pas des métriques communes directement comparables avec MARTHR.
 
-**Conséquence :** le baseline ne représente pas réellement MRHOF et toute comparaison avec MARTHR serait biaisée.
+En outre, `baseline_mrhof()` utilise `self.simulations_dir`, attribut non initialisé dans [analyze_campaigns.py](../scripts/analyze_campaigns.py#L40-L63), alors que le constructeur initialise `self.campaign_dir`.
 
-**Correction :** ne pas tronquer ETX à `[0,1]` ; séparer ETX, rang RPL et scores normalisés de visualisation ; vérifier connectivité, sélection de parents, hops, PDR, délai, énergie et convergence.
+**Conséquence :** les comparaisons MRHOF et les tests de Mann–Whitney ne sont pas démontrés.
 
-### C3 — Intégration NS-3 non fonctionnelle
+**Action :** réparer le chargement, comparer seulement des métriques communes, utiliser les mêmes scénarios/seeds/topologies/durées, sélectionner le meilleur parent indépendamment de l’ordre, vérifier le DAG et agréger par seed avant les tests.
 
-**Sévérité : Critique**
+### C3 — Pipeline de reproduction non fiable
 
-Dans [marthr-routing-protocol.cc](../ns3_setup/marthr-routing-protocol.cc#L36-L51), `RouteInput()` met à jour les métriques puis retourne toujours `false`. Dans [marthr-routing-protocol.cc](../ns3_setup/marthr-routing-protocol.cc#L53-L60), `BuildRoute()` utilise une gateway `0.0.0.0` et ne sélectionne aucun parent, ne consulte pas la table de trust et ne calcule pas de route selon le rang. Les valeurs `trust=0.8`, `energy=0.7` et `qos=0.9` sont codées en dur dans [marthr-routing-protocol.cc](../ns3_setup/marthr-routing-protocol.cc#L62-L73).
+**Statut : encore présent.**
 
-Le README précise qu’il s’agit d’un scaffold à intégrer dans un vrai workspace NS-3 : [README_NS3_MARTHR.md](../ns3_setup/README_NS3_MARTHR.md#L3-L10).
+[reproduce_project.py](../scripts/reproduce_project.py#L12-L30) enchaîne campagne, tables, dataset d’exemple, statistiques, analyse et figures. Il appelle notamment [analyze_campaigns.py](../scripts/reproduce_project.py#L20-L24), dont la baseline est défectueuse.
 
-**Correction :** présenter NS-3 comme prototype non fonctionnel jusqu’à l’implémentation de la découverte de voisins, sélection de parent, calcul de rang, forwarding, routes, métriques et traces CSV. Ajouter un scénario exécutable et un test de livraison de paquets.
+Les contrôles de [reproduce_project.py](../scripts/reproduce_project.py#L32-L56) vérifient seulement un sous-ensemble des sorties et ne contrôlent pas seeds, valeurs manquantes, bornes, connectivité, cycles, cohérence des scénarios, CSV ↔ LaTeX, statistiques ou provenance des figures.
 
-### C4 — Figures de résultats non reliées de manière fiable aux données
+Le pipeline peut aussi réécrire [data/raw/marthr_sample.csv](../data/raw/marthr_sample.csv) via [generate_sample_dataset.py](../scripts/generate_sample_dataset.py#L63-L83), alors que [README_DATA_PROVENANCE.md](../data/README_DATA_PROVENANCE.md#L64-L67) décrit les données brutes comme immuables.
 
-**Sévérité : Critique**
+**Action :** séparer les données brutes et synthétiques, ajouter des répertoires de sortie et options de saut, arrêter le pipeline sur erreur, générer des métadonnées par campagne et tester deux exécutions indépendantes.
 
-Le manuscrit présente comparaison MARTHR/MRHOF, détection, Pareto et overhead dans [main.tex](../manuscript/main.tex#L235-L247) et [main.tex](../manuscript/main.tex#L386-L418). Pourtant [regenerate_tables.py](../scripts/regenerate_tables.py#L19-L22) et [compare_with_baseline.py](../scripts/compare_with_baseline.py#L4-L17) refusent de produire une comparaison MRHOF indépendante, tandis que les figures d’overhead et de détection reposent sur des constantes.
-
-**Correction :** créer un manifeste figure/table → source → script → statut ; supprimer du manuscrit les figures sans source expérimentale traçable.
-
-## 2. Manuscrit
-
-### Affirmations insuffisamment supportées
-
-- « Complete implementation in C and C++ » dans [main.tex](../manuscript/main.tex#L23-L31) : remplacer par prototype C portable et scaffold NS-3 initial.
-- « Outperforming MRHOF » dans [main.tex](../manuscript/main.tex#L23-L31) : retirer tant qu’une comparaison valide n’est pas produite.
-- « Attack detection performance » dans [main.tex](../manuscript/main.tex#L398-L407) : les valeurs sont codées en dur.
-- « Pareto frontier » dans [main.tex](../manuscript/main.tex#L409-L418) : aucune optimisation multi-objectifs démontrée ne produit les points.
-- « Twenty seeds per scenario » : la configuration à 20 graines ne compense pas les baselines invalides, les scénarios non comparables ou la dépendance des observations.
+## 3. Manuscrit
 
 ### H1 — Ablation non contrôlée
 
-**Sévérité : Haute**
+**Sévérité : Haute — statut : reconnue, mais non corrigée méthodologiquement.**
 
-[regenerate_tables.py](../scripts/regenerate_tables.py#L52-L96) utilise des scénarios différents pour `Full MARTHR`, `w/o Trust`, `w/o Energy` et `w/o QoS` : topologie, durée, pertes, mobilité, énergie et menaces varient simultanément. Le manuscrit le reconnaît partiellement dans [main.tex](../manuscript/main.tex#L344-L365), mais conserve une présentation d’évaluation expérimentale.
+[regenerate_tables.py](../scripts/regenerate_tables.py#L48-L96) compare des campagnes qui changent simultanément topologie, durée, pertes, mobilité, énergie, menace, contexte et nombre potentiel de nœuds : lossless pour le modèle complet, lossy sans trust, energy stress sans énergie et mobility sans QoS.
 
-**Correction :** même topologie, mobilité, graines, pertes, trafic et durée ; désactiver un seul composant à la fois.
+Le MCS de `w/o QoS` est supérieur à celui de Full MARTHR dans [ablation_table.tex](../manuscript/tables/ablation_table.tex#L10-L15), mais cela ne permet aucune conclusion causale puisque les scénarios diffèrent.
 
-### M6 — Portée RPL/MANET insuffisamment stabilisée
+**Action :** conserver mêmes scénario, topologie, seeds, trafic, durée et liens ; désactiver un seul terme du MCS à la fois.
 
-**Sévérité : Moyenne**
+### H4 — `qos_latency` n’est pas une latence réseau mesurée
 
-Le manuscrit associe MANET, RPL, DODAG, OCP, MRHOF, NS-3 et Contiki-NG dans [main.tex](../manuscript/main.tex#L42-L72) et [main.tex](../manuscript/main.tex#L171-L185). RPL/MRHOF ciblent les LLN, tandis que le projet est aussi présenté comme protocole MANET général.
+**Sévérité : Haute.**
 
-**Correction :** choisir une portée principale : Objective Function RPL pour LLN, protocole MANET, ou architecture générique avec validations séparées.
+La valeur enregistrée dans [marthr_simulator.py](../scripts/marthr_simulator.py#L292-L306) est principalement `last_qos`, ou `1.0 - last_mcs`. Elle ne mesure ni timestamps émission/réception, ni délai bout en bout, ni moyenne ou percentile. Pourtant la figure est nommée `Latency Comparison` dans [main.tex](../manuscript/main.tex#L292-L300), avec une conclusion sur la latence à [main.tex](../manuscript/main.tex#L302-L304).
 
-### B1 — Section dupliquée
+**Action :** mesurer une vraie latence ou renommer la colonne en `qos_proxy` et retirer les claims de latence.
 
-**Sévérité : Basse**
+### H7 — Claims plus forts que les preuves
 
-[main.tex](../manuscript/main.tex#L105-L120) contient deux déclarations successives de `\section{Protocol Design}`.
+Les formulations suivantes dépassent les résultats actuellement démontrés :
 
-**Correction :** supprimer le doublon et vérifier les signets PDF.
+- « complete implementation in C » à [main.tex](../manuscript/main.tex#L25-L31) ;
+- « proper statistical analysis » à [main.tex](../manuscript/main.tex#L31-L36) ;
+- performance de détection d’attaque à [main.tex](../manuscript/main.tex#L336-L344) ;
+- routes autour de nœuds compromis à [main.tex](../manuscript/main.tex#L342-L344) ;
+- espace de compromis Pareto à [main.tex](../manuscript/main.tex#L350-L358) ;
+- décisions plus équilibrées que la baseline à [main.tex](../manuscript/main.tex#L314-L318).
 
-## 3. Code source
+Ces claims ne sont pas supportés par des traces de paquets, une baseline valide, une optimisation Pareto, une mesure d’overhead ou une mesure de détection.
 
-### H2 — Modèles de trust divergents
+**Action :** soit produire les expériences manquantes, soit présenter honnêtement le manuscrit comme une proposition accompagnée d’une simulation exploratoire.
 
-**Sévérité : Haute**
+## 4. Code source et implémentations
 
-Le simulateur principal initialise un nœud inconnu à `0.5` et pénalise un échec de `0.15` dans [marthr_simulator.py](../scripts/marthr_simulator.py#L43-L65). [marthr_core.py](../code_source/marthr_core.py#L47-L70) retourne `0.0` pour un inconnu et applique une pénalité multiplicative `trust_score * 0.8`. Le C utilise `0.5` et une pénalité additive dans [marthr_trust.c](../code_source/marthr_trust.c#L31-L37) et [marthr_trust.c](../code_source/marthr_trust.c#L70-L73), tandis que NS-3 retourne `0.5` dans [marthr-trust-table.cc](../ns3_setup/marthr-trust-table.cc#L99-L105).
+### H2 — Incohérences Python, C et NS-3
 
-**Correction :** définir une spécification normative unique et ajouter des tests croisés C/Python/NS-3.
+**Sévérité : Haute.**
 
-### H3 — Modèles de poids divergents
+#### Confiance inconnue
 
-**Sévérité : Haute**
+- Python retourne `0.5` dans [marthr_simulator.py](../scripts/marthr_simulator.py#L80-L83).
+- C retourne `0.0` dans [marthr_trust.c](../code_source/marthr_trust.c#L97-L104).
+- NS-3 retourne `0.5` dans [marthr-trust-table.cc](../ns3_setup/marthr-trust-table.cc#L104-L110).
 
-Les poids C/Python suivent l’architecture documentée dans [ARCHITECTURE_SPEC.md](../ARCHITECTURE_SPEC.md#L8-L17), [marthr_context.c](../code_source/marthr_context.c#L8-L28) et [marthr_simulator.py](../scripts/marthr_simulator.py#L18-L45). NS-3 initialise `0.35`, `0.33`, `0.32` et applique des ajustements différents dans [marthr-context.cc](../ns3_setup/marthr-context.cc#L19-L58).
+#### Poids
 
-**Correction :** centraliser les poids et tester quatre niveaux de sécurité, trois niveaux de menace et trois états énergétiques dans toutes les implémentations.
+C et Python partent notamment de `0.35/0.40/0.25` dans [marthr_context.c](../code_source/marthr_context.c#L8-L23) et [marthr_simulator.py](../scripts/marthr_simulator.py#L22-L43). NS-3 part de `0.35/0.33/0.32` et applique une logique différente dans [marthr-context.cc](../ns3_setup/marthr-context.cc#L19-L78). C/Python ne normalisent que si la somme dépasse 1, tandis que NS-3 normalise systématiquement si la somme est positive.
 
-### H4 — Calcul du rang tronqué
+#### Rang
 
-**Sévérité : Haute**
+C/Python calculent $1-\mathrm{MCS}+0.1h$ dans [marthr_rank.c](../code_source/marthr_rank.c#L4-L15) et [marthr_simulator.py](../scripts/marthr_simulator.py#L130-L143). NS-3 utilise directement le MCS et considère qu’un rang plus élevé est meilleur dans [marthr-rank.cc](../ns3_setup/marthr-rank.cc#L27-L50).
 
-Le rang `1 - MCS + 0.1 × hop_count` est borné à `[0,1]` dans [marthr_rank.c](../code_source/marthr_rank.c#L4-L18) et [marthr_simulator.py](../scripts/marthr_simulator.py#L136-L147). Pour plusieurs hops, la pénalité est aplatie à `1`.
+#### OCP C
 
-**Correction :** conserver un rang non borné ou séparer rang interne et score normalisé ; tester la monotonicité avec le nombre de hops.
+[marthr_ocp.c](../code_source/marthr_ocp.c#L25-L41) utilise `metric->rank` comme nombre de hops, alors que [marthr_rank.c](../code_source/marthr_rank.c#L4-L15) reçoit explicitement `hop_count`.
 
-### H5 — Sélection de parent dépendante de l’ordre
+**Action :** définir une spécification normative commune et des vecteurs de tests partagés couvrant confiance, poids, normalisation, rang, hops et sens de comparaison.
 
-**Sévérité : Haute**
+### H3 — Scaffold NS-3 non fonctionnel comme protocole de routage
 
-Dans [marthr_simulator.py](../scripts/marthr_simulator.py#L177-L218), les voisins sont parcourus séquentiellement et le parent est remplacé dès qu’un candidat améliore le rang. `best_neighbor` ne conserve pas réellement le meilleur candidat global.
+**Sévérité : Haute — statut : encore présent mais correctement documenté comme scaffold.**
 
-**Correction :** évaluer tous les voisins, filtrer les parents invalides, choisir le meilleur rang puis appliquer l’hystérésis une seule fois.
+Le README indique explicitement un scaffold dans [README_NS3_MARTHR.md](../ns3_setup/README_NS3_MARTHR.md#L1-L10). Dans [marthr-routing-protocol.cc](../ns3_setup/marthr-routing-protocol.cc#L42-L76) :
 
-### H6 — Absence de contrainte DAG et de détection de cycles
+- `RouteInput()` retourne toujours `false` ;
+- `BuildRoute()` utilise la gateway `0.0.0.0` ;
+- `UpdateMetrics()` utilise `trust=0.8`, `energy=0.7`, `qos=0.9` ;
+- la table de confiance et le rang ne sélectionnent ni parent ni forwarding.
 
-**Sévérité : Haute**
+**Action :** ne pas présenter NS-3 comme validation ; implémenter découverte, métriques de liens, sélection de parent, rang, forwarding, routes IPv4, traces et scénario exécutable.
 
-Dans [marthr_simulator.py](../scripts/marthr_simulator.py#L177-L195), la sélection ne vérifie pas que le rang du parent est strictement inférieur à celui du nœud et ne valide pas le DAG.
+### H5 — Attaques et mobilité non simulées au niveau paquets
 
-**Correction :** imposer un parent strictement meilleur, détecter les cycles après chaque mise à jour et tester automatiquement la connectivité vers la racine pour chaque seed et timestamp.
+**Sévérité : Haute.**
 
-### M4 — Métriques proxy présentées comme métriques réseau
+Le scénario d’attaque modifie directement les tables de confiance dans [run_simulation_campaign.py](../scripts/run_simulation_campaign.py#L86-L116), sans paquets envoyés, reçus ou supprimés, ni taux de détection, faux positifs ou faux négatifs. La mobilité déplace les coordonnées dans [run_simulation_campaign.py](../scripts/run_simulation_campaign.py#L150-L180), sans trafic ni livraison bout en bout.
 
-**Sévérité : Moyenne**
+**Action :** introduire un modèle événementiel de trafic et distinguer confiance, détection, PDR et sélection de route.
 
-Dans [marthr_simulator.py](../scripts/marthr_simulator.py#L228-L244), `qos_latency` vaut `1.0 - last_mcs` et non une latence mesurée ; `mcs` est le dernier score du parent courant. [README_DATA_PROVENANCE.md](../data/README_DATA_PROVENANCE.md#L26-L40) les décrit pourtant comme métriques de simulation générales.
+### M5 — Rang aplati par clamp
 
-**Correction :** renommer en métriques proxy ou mesurer délai d’émission/réception, délai bout-en-bout, moyenne, p95 et p99.
+**Sévérité : Moyenne.**
 
-### M5 — Phénomènes réseau annoncés non réellement simulés
+Le rang $1-\mathrm{MCS}+0.1h$ est borné à 1 dans [marthr_simulator.py](../scripts/marthr_simulator.py#L130-L143) et [marthr_rank.c](../code_source/marthr_rank.c#L4-L15). Pour des chemins longs, la pénalité de saut disparaît et des chemins différents peuvent recevoir `1.0`.
 
-**Sévérité : Moyenne**
+**Action :** séparer rang interne non borné et score normalisé d’affichage, ou adopter une échelle conforme à RPL.
 
-Le scénario d’attaque de [run_simulation_campaign.py](../scripts/run_simulation_campaign.py#L86-L116) force surtout des mises à jour de trust ; il ne mesure pas suppression de paquets, faux rapports de rang, PDR, détection ou faux positifs. Le scénario mobilité de [run_simulation_campaign.py](../scripts/run_simulation_campaign.py#L150-L180) déplace les coordonnées sans trafic ni paquets.
-
-**Correction :** modéliser paquets envoyés/reçus/supprimés, retransmissions, messages de contrôle, détection, faux positifs et faux négatifs.
-
-### B2 — Binaires compilés dans les tests
-
-**Sévérité : Basse**
-
-Le dossier [code_source/tests](../code_source/tests) contient des exécutables compilés (`test_marthr_core`, `test_marthr_rank`, `test_marthr_ablation`, `test_marthr_ocp`) avec les sources.
-
-**Correction :** ignorer les binaires dans Git et les reconstruire dans le pipeline.
-
-## 4. Données
-
-### H8 — Provenance incomplète et absence de traces brutes
-
-**Sévérité : Haute**
-
-[README_DATA_PROVENANCE.md](../data/README_DATA_PROVENANCE.md#L5-L24) décrit des logs bruts et des CSV estimés, mais `data/raw/` contient principalement `marthr_sample.csv`. Les campagnes sont écrites directement dans `data/estimated/simulations/` par [run_simulation_campaign.py](../scripts/run_simulation_campaign.py#L20-L47), sans logs bruts correspondants.
-
-Le document affirme que les données brutes sont immuables, alors que [generate_sample_dataset.py](../scripts/generate_sample_dataset.py#L77-L95) réécrit le fichier d’exemple. Il indique aussi que le trust est toujours nul, alors que les campagnes présentent des valeurs non nulles.
-
-**Correction :** distinguer données générées, brutes, dérivées et pédagogiques ; archiver version, dépendances, configuration, seed, hash et provenance de chaque sortie ; corriger la documentation du trust.
+## 5. Données
 
 ### M1 — CSV et tableaux LaTeX incohérents
 
-**Sévérité : Moyenne**
+**Sévérité : Moyenne.**
 
-[table2_ablation.csv](../data/estimated/table2_ablation.csv#L2-L5) et [ablation_table.tex](../manuscript/tables/ablation_table.tex#L10-L15) contiennent des valeurs différentes, notamment pour l’énergie de `w/o Trust proxy`, le trust et l’énergie de `w/o QoS proxy`, et le MCS.
+[table2_ablation.csv](../data/estimated/table2_ablation.csv#L1-L5) indique notamment `w/o Trust` avec énergie `0.0001` et MCS `0.6247`, ainsi que `w/o QoS` avec énergie `0.5146` et MCS `0.7042`. [ablation_table.tex](../manuscript/tables/ablation_table.tex#L10-L15) affiche respectivement énergie `0.0872`, MCS `0.6245`, énergie `0.5501` et MCS `0.7044`.
 
-**Correction :** générer les `.tex` depuis les CSV et ajouter une vérification automatique CSV ↔ LaTeX.
+Le tableau [results_table.tex](../manuscript/tables/results_table.tex#L8-L15) diverge aussi des valeurs de l’abstract dans [main.tex](../manuscript/main.tex#L25-L31).
 
-### M2 — Nombre de campagnes contradictoire
+**Action :** générer les `.tex` depuis une source CSV unique et ajouter un test CSV ↔ LaTeX.
 
-**Sévérité : Moyenne**
+### M2 — Provenance contradictoire
 
-[README_DATA_PROVENANCE.md](../data/README_DATA_PROVENANCE.md#L5-L9) décrit 8 scénarios, tandis que [run_simulation_campaign.py](../scripts/run_simulation_campaign.py#L256-L286) lance 8 scénarios MARTHR et 3 campagnes MRHOF mais annonce seulement `len(results)/8`.
+**Sévérité : Moyenne.**
 
-**Correction :** distinguer 8 scénarios MARTHR, 3 campagnes baseline et 11 campagnes totales ; vérifier les fichiers attendus.
+[README_DATA_PROVENANCE.md](../data/README_DATA_PROVENANCE.md#L5-L12) annonce huit scénarios et 20 seeds, décrit un dataset d’exemple de 288 lignes et affirme que les données brutes sont immuables. Pourtant [generate_sample_dataset.py](../scripts/generate_sample_dataset.py#L11-L62) régénère directement [marthr_sample.csv](../data/raw/marthr_sample.csv) à partir de trois scénarios, et les campagnes écrivent directement dans `data/estimated/simulations` sans logs bruts ni configuration JSON versionnée.
 
-## 5. Reproductibilité
+**Action :** séparer `raw`, `synthetic`, `estimated` et `illustrative`, puis ajouter version, paramètres, seed, hash, date et dépendances.
 
-### H7 — Tests statistiques annoncés mais non exécutés
+### M3 — Nombre de campagnes annoncé incorrect
 
-**Sévérité : Haute**
+**Sévérité : Moyenne.**
 
-Le manuscrit affirme l’utilisation de Mann–Whitney dans [main.tex](../manuscript/main.tex#L220-L229), mais `baseline_mrhof()` lève une exception dans [analyze_metrics.py](../scripts/statistics/analyze_metrics.py#L40-L50). La fonction statistique existe, mais le pipeline actuel ne produit pas de comparaison valide ni ne vérifie les p-values.
+La liste contient huit campagnes MARTHR et trois MRHOF dans [run_simulation_campaign.py](../scripts/run_simulation_campaign.py#L248-L266), mais le message final affiche `len(results)/8` dans [run_simulation_campaign.py](../scripts/run_simulation_campaign.py#L274-L278).
 
-**Correction :** exécuter effectivement les tests au niveau indépendant approprié, rapporter U, p-value, taille d’effet, intervalle de confiance et corrections pour comparaisons multiples ; ne pas traiter toutes les observations node×time comme réplicats indépendants.
+**Action :** afficher séparément réussites MARTHR, réussites MRHOF, total et échecs.
 
-### M3 — Reproduction insuffisamment validée
+### M4 — Agrégation statistique fragile
 
-**Sévérité : Moyenne**
+Les moyennes sont calculées sur des lignes pouvant mélanger nœuds, timestamps et seeds dans [regenerate_tables.py](../scripts/regenerate_tables.py#L20-L43). La sélection du dernier timestamp est globale dans [regenerate_tables.py](../scripts/regenerate_tables.py#L52-L76), ce qui est fragile pour des campagnes de durées différentes.
 
-[reproduce_project.py](../scripts/reproduce_project.py#L38-L60) vérifie surtout l’existence des fichiers et ne vérifie pas le nombre de seeds, valeurs manquantes, bornes, connectivité, cycles, parents, cohérence scénarios, figures/tableaux ou tests statistiques.
+**Action :** définir l’unité expérimentale, agréger nœud → seed → scénario, puis rapporter intervalles de confiance et tailles d’effet.
 
-**Correction :** ajouter des contrôles bloquants sur les seeds, lignes, colonnes, bornes, nœuds sans parent, cycles, reproductibilité et sorties attendues.
+## 6. Reproductibilité
 
-### Limites de vérification
+| Élément | État |
+|---|---|
+| Structure du dépôt | Présente et relativement claire |
+| Simulateur Python | Cohérent à la lecture statique, exécution non confirmée |
+| Baseline MRHOF | Présente, mais comparaison incomplète et analyse cassée |
+| Modules et tests C | Présents, compilation/exécution non confirmées |
+| Scaffold NS-3 | Présent, non intégré dans un workspace NS-3 |
+| Campagnes CSV | Présentes, provenance incomplète |
+| Figures issues de CSV | Traçabilité partielle |
+| Figures hardcodées | Toujours présentes |
+| Tables CSV → LaTeX | Divergentes |
+| Mann–Whitney | Annoncé, mais pipeline défectueux |
+| Reproduction bout en bout | Non démontrée |
 
-Les éléments suivants n’ont pas été confirmés par exécution complète pendant l’audit : compilation C avec `make`, exécution complète de [reproduce_project.py](../scripts/reproduce_project.py), compilation LaTeX avec `latexmk`, compilation NS-3 dans une distribution complète, résultats des tests unitaires, validité externe des références arXiv, comparaison binaire des PDF et intégrité exhaustive de tous les CSV.
+Les vérifications effectuées sont statiques : inventaire, lecture des fichiers clés, comparaison des formules, inspection des CSV/tableaux, recherche de constantes et de claims sensibles. Les commandes `python3 scripts/reproduce_project.py`, `make`, tests C, `pdflatex`/`latexmk`, compilation NS-3 et campagne complète n’ont pas été exécutées dans cet audit ; elles sont donc **non vérifiées**, et non considérées comme réussies.
 
-## 6. Figures et tableaux
+## 7. Figures et tableaux
 
-La traçabilité figure → données → script n’est pas garantie. Les figures de contexte, overhead, détection et Pareto doivent être séparées entre schémas conceptuels et résultats expérimentaux. Les tableaux LaTeX doivent être régénérés automatiquement depuis les CSV et contrôlés avant chaque compilation.
+Les figures de comparaison, énergie, confiance, rang et ablation existent, ainsi que les figures PNG d’architecture, contexte, DODAG, Pareto, overhead et détection. Leur présence ne garantit pas leur validité scientifique.
 
-## 7. Bibliographie
+[generate_ieee_figures.py](../scripts/generate_ieee_figures.py#L1-L39) lit certains CSV, mais ne vérifie pas systématiquement les colonnes obligatoires ; plusieurs écarts-types calculés ne sont pas utilisés ; la figure d’ablation utilise la complexité des scénarios dans [generate_ieee_figures.py](../scripts/generate_ieee_figures.py#L163-L190) ; la figure de latence utilise `ax.legend()` sans série explicitement étiquetée dans [generate_ieee_figures.py](../scripts/generate_ieee_figures.py#L119-L142). Les figures supplémentaires restent hardcodées dans [generate_missing_figures.py](../scripts/generate_missing_figures.py#L80-L161).
 
-### B3 — Bibliographie à valider avec la cible IEEE
+## 8. Bibliographie
 
-**Sévérité : Basse à Moyenne**
+### B1 — Métadonnées et statut des références à vérifier
 
-[references.bib](../manuscript/bib/references.bib) contient des entrées `@rfc` dont la compatibilité exacte avec IEEEtran n’a pas été confirmée par compilation. Plusieurs références arXiv de 2025–2026 doivent aussi être vérifiées indépendamment.
+**Sévérité : Basse.**
 
-**Correction :** compiler avec BibTeX et traiter tous les warnings ; vérifier DOI, URL, titre, auteurs, pages et statut de publication ; ne pas présenter les prépublications comme état de l’art établi sans préciser leur statut.
+[references.bib](../manuscript/bib/references.bib#L1-L140) contient des références historiques pertinentes et plusieurs prépublications arXiv. Il manque souvent DOI, statut de publication et vérification systématique des métadonnées. La référence MRHOF est décrite comme `RPL Objective Function 0` dans [references.bib](../manuscript/bib/references.bib#L24-L30), alors que le manuscrit l’utilise comme baseline MRHOF.
 
-## 8. Actions de correction recommandées
+**Action :** vérifier les sources primaires, DOI, titres, auteurs et statut RFC/article/preprint ; distinguer clairement ces catégories.
 
-### Priorité 0 — Avant toute revendication expérimentale
+### B2 — Artefacts générés non distingués des sources
 
-1. Retirer ou marquer comme illustratives les figures produites par constantes.
-2. Corriger ou retirer la comparaison MRHOF.
-3. Corriger le baseline ETX/rang.
-4. Clarifier que NS-3 est un scaffold.
-5. Retirer du résumé les revendications de supériorité et de détection non démontrées.
+**Sévérité : Basse.**
 
-### Priorité 1 — Rendre l’évaluation valide
+Le dépôt contient des auxiliaires LaTeX et de nombreuses figures générées sans manifeste reliant systématiquement chaque artefact à son script et à ses données.
 
-1. Implémenter une campagne baseline fonctionnelle.
-2. Créer des ablations contrôlées.
-3. Produire PDR, délai, overhead, énergie et détection à partir d’événements réseau réels.
-4. Agréger par seed, pas seulement par ligne node×time.
-5. Exécuter et archiver les tests statistiques.
-6. Ajouter un contrôle de cycles et de connectivité.
+**Action :** documenter le statut de chaque artefact et exclure les sorties intermédiaires régénérables du suivi.
 
-### Priorité 2 — Réconcilier les implémentations
+### B3 — Tests C insuffisants pour la conformité scientifique
 
-1. Unifier poids, trust et conventions de rang entre C, Python et NS-3.
-2. Ajouter des tests de conformité inter-implémentations.
-3. Régénérer tous les tableaux et figures depuis une chaîne de données unique.
+**Sévérité : Basse.**
 
-### Priorité 3 — Nettoyer la reproductibilité
+Les tests [test_marthr_core.c](../code_source/tests/test_marthr_core.c#L1-L66) et [test_marthr_rank.c](../code_source/tests/test_marthr_rank.c#L1-L60) vérifient surtout l’absence de crash, les bornes et quelques cas simples. Ils ne couvrent pas la conformité C ↔ Python, les contextes complets, les cycles, la capacité de table, la monotonicité des hops ni les sorties CSV.
 
-1. Ajouter la provenance complète des données.
-2. Distinguer données brutes, estimées, synthétiques et illustratives.
-3. Ajouter un manifeste figure/table.
-4. Ajouter les versions des dépendances et de l’environnement.
-5. Faire échouer le pipeline si une sortie attendue est absente ou incohérente.
+## 9. Actions de correction prioritaires
 
-## Verdict final
+### Priorité 0 — Avant toute soumission
 
-**Statut actuel : prototype prometteur, mais non publiable comme étude expérimentale comparative sans corrections majeures.**
+1. Supprimer ou requalifier les figures hardcodées.
+2. Réparer ou retirer la comparaison MRHOF.
+3. Corriger `baseline_mrhof()` et ajouter des tests d’exécution.
+4. Régénérer les tableaux depuis les CSV courants.
+5. Renommer `qos_latency` ou mesurer une vraie latence.
+6. Retirer les claims de détection, overhead et Pareto non démontrés.
+7. Requalifier précisément le C et NS-3.
 
-Le principal risque scientifique est la confusion entre prototype algorithmique, simulation synthétique, baseline expérimentale, scaffold NS-3, figures illustratives et résultats de campagne. Après correction des quatre anomalies critiques et des problèmes de baseline, d’ablation, de provenance et de cohérence inter-implémentations, le projet pourrait devenir une base reproductible pour une évaluation scientifique sérieuse.
+### Priorité 1 — Évaluation scientifique
+
+1. Utiliser une baseline MRHOF réellement comparable.
+2. Conserver mêmes scénarios, seeds, topologies et durées.
+3. Implémenter une ablation à facteur unique.
+4. Produire PDR, délai, overhead, énergie et détection à partir d’événements réseau.
+5. Agréger par seed et rapporter p-values, tailles d’effet et intervalles de confiance.
+6. Ajouter détection de cycles et vérification de connectivité.
+
+### Priorité 2 — Conformité inter-implémentations
+
+1. Définir une spécification normative unique.
+2. Unifier confiance inconnue, poids, normalisation, rang, hops et sens de comparaison.
+3. Ajouter des vecteurs de test partagés Python/C/NS-3.
+
+### Priorité 3 — Reproductibilité
+
+1. Séparer données brutes, synthétiques, estimées et illustratives.
+2. Ajouter configuration, version, hash et seed à chaque campagne.
+3. Faire échouer le pipeline dès qu’une sortie ou colonne est incohérente.
+4. Ajouter un manifeste figure/table.
+5. Exécuter deux reproductions complètes dans un environnement propre.
+6. Compiler le manuscrit depuis zéro et archiver le log.
+
+## 10. Verdict final
+
+**Statut au 23 juillet 2026 : prototype prometteur, mais non publiable comme étude expérimentale comparative.**
+
+Les corrections récentes ont amélioré la structure, restauré les composants C, ajouté les campagnes et corrigé le calcul ETX. Elles n’ont pas résolu les points déterminants : figures partiellement hardcodées, baseline MRHOF non démontrée, pipeline statistique cassé, ablation non contrôlée, incohérences CSV–LaTeX, divergences C–Python–NS-3, métriques QoS proxy et scaffold NS-3 non fonctionnel comme protocole de routage.
+
+Le projet peut devenir une contribution crédible après une révision expérimentale et reproductible substantielle.
