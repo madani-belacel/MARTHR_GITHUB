@@ -238,13 +238,10 @@ Avant de valider le projet MARTHR :
 
 ## 7. Nettoyage du dépôt
 
-Pour le nettoyage, suivre les instructions dans `anomalies/nettoyer_dossier.md`.
-
 Objectifs :
-- Supprimer les mentions d'IA
-- Supprimer les fichiers inutiles
+- Vérifier que la documentation est à jour
 - Conserver données et scripts de reproduction
-- Créer l'archive `publish_ready/MARTHR_publish.tar.gz`
+- S'assurer que le README est complet
 
 ---
 

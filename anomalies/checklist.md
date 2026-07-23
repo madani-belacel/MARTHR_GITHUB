@@ -10,7 +10,6 @@
 ### Langage et style
 - **Commentaires en français** — c'est volontaire, ne pas les signaler comme erreurs
 - **Code style humain** — alignement variable, pas trop rigide
-- **Ne jamais ajouter de commentaires IA** : `claude`, `chatGPT`, `opencode`, `copilot`, `AI-generated`, etc.
 
 ### Structure du projet
 - **UN SEUL fichier main.tex** — ne jamais créer de variantes
@@ -144,5 +143,4 @@ Avant de considérer le projet prêt :
 - [ ] Le PDF a minimum 8 pages
 - [ ] Il y a minimum 12 figures
 - [ ] Les données dans les tableaux correspondent aux CSV
-- [ ] Pas de mots-clés IA dans le code
 - [ ] L'archive de publication est créée
