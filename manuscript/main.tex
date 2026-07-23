@@ -115,14 +115,14 @@ After adjustments, weights are renormalized when their sum exceeds one, matching
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/marthr_architecture.png}
-\caption{High-level MARTHR protocol architecture showing the modular design with context fusion, trust management, score computation, and rank calculation.}
+\caption{MARTHR Protocol Architecture. Modular design with context fusion, trust management, score computation, and rank calculation components.}
 \label{fig:architecture}
 \end{figure}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/marthr_context_weights.png}
-\caption{Context-dependent weight adaptation across safety, threat, and energy domains. Weights shift dynamically to emphasize the most critical objective.}
+\caption{Context-Dependent Weight Adaptation. Weights shift dynamically across safety, threat, and energy domains to emphasize the most critical objective.}
 \label{fig:weights}
 \end{figure}
 
@@ -154,7 +154,7 @@ where $\gamma_d = 0.002$ per time step for non-parent entries.
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/marthr_dodag_trust.png}
-\caption{DODAG visualization with trust-aware node coloring. Higher trust values are shown in darker shades, indicating preferred routing paths.}
+\caption{DODAG with Trust-Aware Coloring. Higher trust values are shown in darker shades, indicating preferred routing paths.}
 \label{fig:dodag}
 \end{figure}
 
@@ -250,7 +250,7 @@ We employ Mann-Whitney U tests (non-parametric) to assess significant difference
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/baseline_comparison.png}
-\caption{Comparison of MARTHR against the MRHOF baseline across representative scenarios. MARTHR achieves higher MCS and trust scores while maintaining competitive latency.}
+\caption{MARTHR vs MRHOF Baseline. Comparison across lossless, lossy, and attack scenarios. MARTHR achieves higher MCS and trust scores while maintaining competitive latency.}
 \label{fig:baseline}
 \end{figure}
 
@@ -261,7 +261,7 @@ Figure~\ref{fig:baseline} compares MARTHR with the MRHOF ETX-based baseline acro
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/fig1_mcs_comparison.pdf}
-\caption{Mean Multi-Criteria Score (MCS) across network scenarios from the current reproduction workflow. The figure reflects the present pipeline outputs rather than a finalized performance claim.}
+\caption{MCS Across Scenarios. Mean Multi-Criteria Score from the current reproduction workflow. Values reflect present pipeline outputs.}
 \label{fig:mcs}
 \end{figure}
 
@@ -272,7 +272,7 @@ Table~\ref{tab:results} presents descriptive statistics from the current campaig
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/marthr_summary_plot.png}
-\caption{Summary of mean energy and MCS across representative scenarios. MARTHR maintains high energy efficiency while achieving competitive MCS scores.}
+\caption{Energy and MCS Summary. MARTHR maintains high energy efficiency while achieving competitive MCS scores across representative scenarios.}
 \label{fig:summary}
 \end{figure}
 
@@ -281,7 +281,7 @@ Table~\ref{tab:results} presents descriptive statistics from the current campaig
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/fig2_trust_dynamics.pdf}
-\caption{Trust score distributions across scenarios from the current simulation outputs. The values shown here are meant to reflect the present prototype pipeline and its reproducible statistics.}
+\caption{Trust Score Distributions. Values across scenarios from the current simulation outputs, reflecting the present prototype pipeline.}
 \label{fig:trust}
 \end{figure}
 
@@ -292,7 +292,7 @@ Figure~\ref{fig:trust} illustrates the trust score distributions observed across
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/fig3_energy_consumption.pdf}
-\caption{Energy consumption across scenarios from the current reproduction workflow. The figure illustrates the present generated outputs and should be interpreted in that context.}
+\caption{Energy Consumption Across Scenarios. Illustrates the present generated outputs from the reproduction workflow.}
 \label{fig:energy}
 \end{figure}
 
@@ -303,7 +303,7 @@ In the energy stress scenario (Figure~\ref{fig:energy}), the protocol shifts emp
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/fig4_latency_comparison.pdf}
-\caption{Latency comparison across scenarios from the current simulation outputs. The figure follows the generated pipeline values and avoids over-claiming beyond the available evidence.}
+\caption{Latency Comparison. Values follow the generated pipeline outputs and avoid over-claiming beyond the available evidence.}
 \label{fig:latency}
 \end{figure}
 
@@ -314,7 +314,7 @@ The current results indicate that MARTHR maintains competitive latency behavior 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/fig5_rank_distribution.pdf}
-\caption{Rank distribution across nodes. MARTHR produces more uniform rank distributions, indicating balanced load across the network.}
+\caption{Rank Distribution Across Nodes. MARTHR produces more uniform distributions, indicating balanced load across the network.}
 \label{fig:rank}
 \end{figure}
 
@@ -325,7 +325,7 @@ The rank distribution in Figure~\ref{fig:rank} suggests that MARTHR can produce 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/marthr_control_overhead.png}
-\caption{Control overhead under increasing routing stress. MARTHR maintains manageable overhead even in large grid scenarios.}
+\caption{Control Overhead. MARTHR maintains manageable overhead even in large grid scenarios under increasing routing stress.}
 \label{fig:overhead}
 \end{figure}
 
@@ -336,7 +336,7 @@ Figure~\ref{fig:overhead} indicates that the context-aware adaptation does not i
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/marthr_attack_detection.png}
-\caption{Attack detection performance across representative scenarios. MARTHR successfully identifies and routes around malicious nodes.}
+\caption{Attack Detection Performance. MARTHR successfully identifies and routes around malicious nodes across representative scenarios.}
 \label{fig:detection}
 \end{figure}
 
@@ -347,7 +347,7 @@ The attack detection results in Figure~\ref{fig:detection} indicate that the pro
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/marthr_pareto_frontier.png}
-\caption{Pareto frontier illustrating the trust-energy trade-off. MARTHR explores a wider range of operating points than single-objective approaches.}
+\caption{Pareto Frontier: Trust-Energy Trade-off. MARTHR explores a wider range of operating points than single-objective approaches.}
 \label{fig:pareto}
 \end{figure}
 
@@ -358,7 +358,7 @@ The Pareto analysis in Figure~\ref{fig:pareto} suggests that MARTHR's multi-crit
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{Figures/fig6_ablation.pdf}
-\caption{Scenario-proxied component-removal study. Each variant substitutes a different scenario configuration to approximate the effect of removing one lever; these are not controlled ablations on the same topology.}
+\caption{Scenario-Proxied Component-Removal Study. Each variant substitutes a different scenario configuration to approximate the effect of removing one lever; these are not controlled ablations on the same topology.}
 \label{fig:ablation}
 \end{figure}
 
