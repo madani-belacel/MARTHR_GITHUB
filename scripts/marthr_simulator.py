@@ -202,7 +202,7 @@ class MarthrNode:
         self.score_engine = MarthrScore(self.context)
         self.rank_engine = MarthrRank()
         self.metrics_log = []
-        self.convergence_time = 0  # Round when parent first selected
+        self.convergence_time = -1  # Round when parent first selected
         self.hop_count = 0
         self.last_mcs = 0.0
         self.last_qos = 0.0

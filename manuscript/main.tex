@@ -364,14 +364,7 @@ The Pareto analysis in Figure~\ref{fig:pareto} suggests that MARTHR's multi-crit
 
 \input{tables/ablation_table.tex}
 
-Table~\ref{tab:ablation} and Figure~\ref{fig:ablation_comp} summarize scenario-proxied component-removal outputs produced by the reproducible pipeline. Because each variant substitutes a different scenario, the values should not be interpreted as a controlled ablation study.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.85\columnwidth]{Figures/marthr_ablation_figure.png}
-\caption{Exploratory scenario proxies for component removal; the campaigns are not controlled ablations.}
-\label{fig:ablation_comp}
-\end{figure}
+Table~\ref{tab:ablation} summarizes scenario-proxied component-removal outputs produced by the reproducible pipeline. Because each variant substitutes a different scenario, the values should not be interpreted as a controlled ablation study.
 
 % ============================================================
 \section{Discussion}
@@ -385,13 +378,6 @@ Table~\ref{tab:ablation} and Figure~\ref{fig:ablation_comp} summarize scenario-p
 \item \textbf{Simplicity}: Uses simple linear weighting and lookup tables, suitable for embedded devices with limited computational resources.
 \item \textbf{Reproducibility}: Complete C implementation, test suites, and evaluation pipeline provided for validation and extension.
 \end{enumerate}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.85\columnwidth]{Figures/marthr_scientific_figure.png}
-\caption{Scientific visualization of energy, MCS, and QoS latency trade-offs across scenarios.}
-\label{fig:scientific}
-\end{figure}
 
 \subsection{Limitations}
 
@@ -424,6 +410,7 @@ MARTHR is a context-aware multi-criteria routing protocol for mobile ad hoc netw
 
 The authors acknowledge the support of the University of Abdelhamid Ibn Badis, Mostaganem, Algeria.
 
+\clearpage
 \bibliographystyle{IEEEtran}
 \bibliography{bib/references}
 

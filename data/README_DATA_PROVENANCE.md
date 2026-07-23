@@ -75,4 +75,4 @@ cd manuscript && latexmk -pdf main.tex
 ## Notes
 - Les données brutes (`data/raw/`) sont immuables une fois générées
 - Les données estimées (`data/estimated/`) sont régénérables depuis les données brutes
-- Le trust est toujours 0.0 dans le simulateur actuel (comportement du simulateur)
+- Le trust est calculé dynamiquement par le modèle de confiance (BETA update) et varie entre 0.0 et 1.0 selon les interactions
