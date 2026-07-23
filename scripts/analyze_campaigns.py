@@ -46,11 +46,27 @@ class CampaignAnalyzer:
         return metrics
     
     def baseline_mrhof(self):
-        """Raise until an independently implemented MRHOF campaign exists."""
-        raise RuntimeError(
-            "MRHOF comparison unavailable: a MARTHR campaign is not a baseline "
-            "and cannot be reused as one."
-        )
+        """Load MRHOF baseline results if available."""
+        import csv
+        mrhof_files = {
+            'lossless': 'campaign_mrhof_lossless_aggregated.csv',
+            'lossy': 'campaign_mrhof_lossy_aggregated.csv',
+            'attack': 'campaign_mrhof_attack_aggregated.csv',
+        }
+        results = {}
+        for scenario, filename in mrhof_files.items():
+            path = self.simulations_dir / filename
+            if path.exists():
+                with open(path) as f:
+                    reader = csv.DictReader(f)
+                    rows = list(reader)
+                results[scenario] = {
+                    m: [float(r[m]) for r in rows if r.get(m)]
+                    for m in ['rank', 'trust', 'energy', 'mcs', 'qos_latency']
+                }
+        if not results:
+            return None
+        return results
     
     def statistical_test(self, scenario1_metrics, scenario2_metrics, metric_name):
         """Mann-Whitney U test (non-parametric)"""

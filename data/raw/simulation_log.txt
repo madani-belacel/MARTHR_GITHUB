@@ -1,3 +1,0 @@
-node=1 parent=2 rank=0.4200 trust=0.8123 energy=0.7500 qos_latency=0.1200 mcs=0.6366
-node=2 parent=3 rank=0.4300 trust=0.7890 energy=0.7600 qos_latency=0.1300 mcs=0.6274
-node=3 parent=4 rank=0.4400 trust=0.7745 energy=0.7700 qos_latency=0.1400 mcs=0.6188

@@ -178,13 +178,13 @@ class MRHOFBaseline:
         """Compute rank = ETX + hop_count * 0.1 (MRHOF convention).
         Lower rank = better."""
         rank = etx + hop_count * 0.1
-        return max(0.0, min(1.0, rank))
+        return rank
     
     def estimate_etx(self, link_quality):
         """Estimate ETX from link quality. ETX = 1 / PRR (Packet Reception Ratio)."""
         prr = max(0.01, min(1.0, link_quality))
         etx = 1.0 / prr
-        return max(0.0, min(1.0, etx))
+        return etx
 
 
 class MarthrNode:
@@ -205,6 +205,7 @@ class MarthrNode:
         self.convergence_time = 0  # Round when parent first selected
         self.hop_count = 0
         self.last_mcs = 0.0
+        self.last_qos = 0.0
         self.packet_loss_rate = 0.0  # Simulated PLR
     
     def get_energy_level(self):
@@ -269,6 +270,7 @@ class MarthrNode:
             self.rank = new_rank
             self.hop_count = candidate_hop
             self.last_mcs = mcs
+            self.last_qos = qos
             self.trust_table.update_success(candidate_parent_id, link_quality)
             if old_parent is None and self.convergence_time == 0:
                 self.convergence_time = current_round
@@ -293,7 +295,7 @@ class MarthrNode:
             'rank': round(self.rank, 4),
             'trust': round(parent_trust, 4),
             'energy': round(self.energy, 4),
-            'qos_latency': round(1.0 - self.last_mcs, 4) if self.last_mcs > 0 else 1.0,
+            'qos_latency': round(self.last_qos, 4) if self.last_qos > 0 else round(1.0 - self.last_mcs, 4),
             'mcs': round(self.last_mcs, 4),
             'hop_count': self.hop_count,
             'convergence_time': self.convergence_time,
@@ -313,6 +315,7 @@ class MrhofNode:
         self.rank = 1.0
         self.hop_count = 0
         self.last_mcs = 0.0
+        self.last_qos = 0.0
         self.packet_loss_rate = 0.0
         self.convergence_time = 0
         self.mrhof = MRHOFBaseline()
@@ -356,7 +359,7 @@ class MrhofNode:
             'rank': round(self.rank, 4),
             'trust': round(parent_trust, 4),
             'energy': round(self.energy, 4),
-            'qos_latency': round(1.0 - self.last_mcs, 4) if self.last_mcs > 0 else 1.0,
+            'qos_latency': round(self.last_qos, 4) if self.last_qos > 0 else round(1.0 - self.last_mcs, 4),
             'mcs': round(self.last_mcs, 4),
             'hop_count': self.hop_count,
             'convergence_time': self.convergence_time,

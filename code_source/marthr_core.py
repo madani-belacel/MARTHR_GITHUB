@@ -31,7 +31,9 @@ class Context:
             gamma += 0.02
 
         total = alpha + beta + gamma
-        return alpha / total, beta / total, gamma / total
+        if total > 1.0 + 1e-5:
+            return alpha / total, beta / total, gamma / total
+        return alpha, beta, gamma
 
 
 @dataclass
@@ -62,12 +64,12 @@ class TrustTable:
             entry = TrustEntry(node_id=node_id)
             self.entries.append(entry)
         entry.failures += 1
-        entry.trust_score = entry.trust_score * 0.8
+        entry.trust_score = max(0.0, entry.trust_score - 0.15)
         entry.last_seen += 1
 
     def get(self, node_id: int) -> float:
         entry = self._find(node_id)
-        return 0.0 if entry is None else entry.trust_score
+        return 0.5 if entry is None else entry.trust_score
 
     def _find(self, node_id: int) -> TrustEntry | None:
         for entry in self.entries:

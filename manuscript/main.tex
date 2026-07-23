@@ -22,7 +22,7 @@ madani.belacel@univ-mosta.dz}}
 \maketitle
 
 \begin{abstract}
-Mobile ad hoc networks (MANETs) operate under volatile topology, intermittent connectivity, and strict energy constraints, which makes routing a difficult multi-objective optimization problem. Existing protocols optimize a single criterion (hop count, energy, or packet delivery) but fail to jointly address trust, energy, and quality-of-service (QoS) trade-offs, especially under adversarial conditions. This paper introduces MARTHR, a context-aware hierarchical routing protocol that combines trust, residual energy, and QoS latency into a unified multi-criteria score (MCS). The protocol adapts its decision weights to the current operating context (safety level, threat level, energy state), enabling more resilient path selection in safety-critical, attack-prone, and energy-constrained scenarios. We present a complete implementation in C, a reproducible evaluation pipeline with simulation-based scenarios, descriptive statistics across eight scenarios with twenty seeds each, and a baseline comparison with an MRHOF (ETX-based) protocol. Across the current campaign outputs, MARTHR attains mean trust 0.4593, mean residual energy 0.5327, mean MCS 0.6321, and mean normalized latency 0.3679. The protocol is designed for reproducibility and future integration with NS-3 and Contiki-NG platforms.
+Mobile ad hoc networks (MANETs) operate under volatile topology, intermittent connectivity, and strict energy constraints, which makes routing a difficult multi-objective optimization problem. Existing protocols optimize a single criterion (hop count, energy, or packet delivery) but fail to jointly address trust, energy, and quality-of-service (QoS) trade-offs, especially under adversarial conditions. This paper introduces MARTHR, a context-aware hierarchical routing protocol that combines trust, residual energy, and QoS latency into a unified multi-criteria score (MCS). The protocol adapts its decision weights to the current operating context (safety level, threat level, energy state), enabling more resilient path selection in safety-critical, attack-prone, and energy-constrained scenarios. We present a complete implementation in C, a reproducible evaluation pipeline with simulation-based scenarios, descriptive statistics across eight scenarios with twenty seeds each, and a baseline comparison with an MRHOF (ETX-based) protocol. Across the current campaign outputs, MARTHR attains mean trust 0.4594, mean residual energy 0.5149, mean MCS 0.6320, and mean normalized latency 0.3680. The protocol is designed for reproducibility, with future integration planned for NS-3 and Contiki-NG platforms.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -33,7 +33,7 @@ Mobile ad hoc networks, routing, trust, multi-criteria optimization, context awa
 \section{Introduction}
 % ============================================================
 
-Routing in mobile ad hoc networks remains challenging because wireless topologies evolve rapidly, links fail frequently, and battery resources are limited. Classical distance-vector and link-state protocols such as AODV, DSR, and OLSR were designed for infrastructure-oriented settings and therefore perform poorly in MANETs. RPL (Routing Protocol for Low-power and Lossy Networks, RFC~6550) introduced the concept of an Objective Function (OF) to compute routing ranks, yet existing OFs such as MRHOF and OF0 remain largely static and typically optimize a single criterion, such as hop count or expected transmission count (ETX).
+Routing in mobile ad hoc networks remains challenging because wireless topologies evolve rapidly, links fail frequently, and battery resources are limited. Classical distance-vector and link-state protocols such as AODV, DSR, and OLSR~\cite{clausen2003optimized} were designed for stable MANETs and therefore struggle under high mobility and adversarial conditions. RPL (Routing Protocol for Low-power and Lossy Networks, RFC~6550) introduced the concept of an Objective Function (OF) to compute routing ranks, yet existing OFs such as MRHOF~\cite{gnaneswaran2012mrhof} and OF0 remain largely static and typically optimize a single criterion, such as hop count or expected transmission count (ETX).
 
 Recent work has highlighted the importance of integrating multiple objectives: (1) \emph{Trust}: a node's reputation based on its observed behavior and historical successes or failures; (2) \emph{Energy}: the residual battery capacity required to preserve network longevity; and (3) \emph{QoS}: latency, bandwidth, or packet delivery ratio needed to satisfy application requirements. However, no single protocol effectively balances all three objectives while adapting to changing operational contexts.
 
@@ -56,7 +56,7 @@ Trust-aware routing protocols have been studied extensively to address Byzantine
 Energy-conscious protocols minimize power consumption to extend network lifetime. RPL's MRHOF~\cite{winter2012rpl} primarily optimizes ETX but can be augmented with energy awareness~\cite{singh1998power,he2014energy,younis2004heed}. Our approach treats energy as one of three equally weighted objectives rather than a secondary concern.
 
 \subsection{Multi-criteria Routing}
-Pareto-optimal routing~\cite{farkas2007robustness}, weight-adaptive schemes~\cite{desai2002routing,rahman2007context}, and reinforcement learning approaches have been proposed. Recent work on FANET routing resilience combines fuzzy logic with bio-inspired algorithms~\cite{yuan2026fuzzy}, while hierarchical federated learning has been applied to tactical MANET waveform classification~\cite{thornton2026federated}. ML-based passive reconnaissance of OLSR routing defenses~\cite{schweitzer2026passive} and hybrid secure routing combining cryptographic and trust-based mechanisms~\cite{boufaida2026hybrid} represent the state of the art. SDN-driven approaches for MANETs and IoT~\cite{piroddi2026sdn} and beaconless geocast protocol analysis~\cite{gudmundsson2025beaconless} address complementary aspects of ad-hoc routing. Our context-aware weighting is simpler than ML-based methods yet more flexible than static weights, making it suitable for resource-constrained devices. DTN-based opportunistic routing has also been explored for disaster recovery scenarios~\cite{hasan2025dtn}, providing a complementary perspective on delay-tolerant ad-hoc communication.
+Pareto-optimal routing~\cite{farkas2007robustness}, weight-adaptive schemes~\cite{desai2002routing,rahman2007context}, and reinforcement learning approaches~\cite{younis2004heed} have been proposed. Recent work on FANET routing resilience combines fuzzy logic with bio-inspired algorithms~\cite{yuan2026fuzzy}, while hierarchical federated learning has been applied to tactical MANET waveform classification~\cite{thornton2026federated}. ML-based passive reconnaissance of OLSR routing defenses~\cite{schweitzer2026passive} and hybrid secure routing combining cryptographic and trust-based mechanisms~\cite{boufaida2026hybrid} represent the state of the art. SDN-driven approaches for MANETs and IoT~\cite{piroddi2026sdn} and beaconless geocast protocol analysis~\cite{gudmundsson2025beaconless} address complementary aspects of ad-hoc routing. Our context-aware weighting is simpler than ML-based methods yet more flexible than static weights, making it suitable for resource-constrained devices. DTN-based opportunistic routing has also been explored for disaster recovery scenarios~\cite{hasan2025dtn}, providing a complementary perspective on delay-tolerant ad-hoc communication.
 
 \begin{table*}[t]
 \centering
@@ -77,9 +77,6 @@ MARTHR (this work) & Joint trust-energy-QoS routing & Yes & Yes & Yes & Context-
 \bottomrule
 \end{tabular}
 \end{table*}
-
-% ============================================================
-\section{Protocol Design}
 
 % ============================================================
 \section{Protocol Design}
@@ -420,6 +417,12 @@ Table~\ref{tab:ablation} and Figure~\ref{fig:ablation_comp} summarize scenario-p
 % ============================================================
 
 MARTHR is a context-aware multi-criteria routing protocol for mobile ad hoc networks that jointly considers trust, energy, and QoS. Using a reproducible simulation workflow across eight scenarios, the current evaluation demonstrates that the prototype produces consistent outputs and provides a solid foundation for future work on adaptive routing in resource-constrained networks. The design remains simple, modular, and extensible, making it suitable for continued development and eventual integration with IoT platforms.
+
+% ============================================================
+\section*{Acknowledgments}
+% ============================================================
+
+The authors acknowledge the support of the University of Abdelhamid Ibn Badis, Mostaganem, Algeria.
 
 \bibliographystyle{IEEEtran}
 \bibliography{bib/references}
